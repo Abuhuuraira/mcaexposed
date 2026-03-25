@@ -1,0 +1,142 @@
+.pageWrap {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  background: #070707;
+  color: #ffffff;
+}
+
+.contentContainer {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.heroSection {
+  padding: 3.1rem 0 2.9rem;
+}
+
+.heroSection h1 {
+  margin: 0;
+  color: #39ff14;
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  line-height: 1.1;
+  text-align: center;
+}
+
+.heroSection h2 {
+  margin: 1.05rem 0 0;
+  color: #ff1f1f;
+  font-size: clamp(1.25rem, 1.95vw, 1.85rem);
+  line-height: 1.4;
+  text-align: center;
+}
+
+.heroSection p {
+  margin: 1.15rem auto 0;
+  max-width: 880px;
+  color: #dfdfdf;
+  font-size: 1rem;
+  line-height: 1.85;
+  text-align: center;
+}
+
+.emailLine {
+  margin-top: 1.35rem;
+  color: #ffffff;
+}
+
+.emailLine a {
+  color: #39ff14;
+}
+
+.emailButton {
+  margin-top: 1.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.72rem 1.25rem;
+  border: 1px solid #39ff14;
+  color: #000000;
+  background: #39ff14;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.emailButton:hover {
+  background: #2ee20e;
+}
+
+.reportDivider {
+  height: 2px;
+  width: calc(100vw - 3rem);
+  margin: 0 auto;
+  background-color: #39ff14;
+}
+
+.linksSection {
+  border-top: 1px solid #202020;
+  padding: 2.2rem 0 2.6rem;
+}
+
+.linksSection h3 {
+  margin: 0 0 0.85rem;
+  color: #ffffff;
+  font-size: 1.35rem;
+}
+
+.linksGrid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.linksGrid a {
+  color: #d8d8d8;
+}
+
+.linksGrid a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .heroSection {
+    padding: 2.35rem 0 2.1rem;
+  }
+
+  .contentContainer {
+    padding: 0 1rem;
+  }
+
+  .heroSection h1 {
+    font-size: clamp(1.9rem, 7vw, 2.5rem);
+  }
+
+  .heroSection h2 {
+    font-size: clamp(1.08rem, 4.4vw, 1.45rem);
+  }
+
+  .heroSection p {
+    font-size: 0.95rem;
+    line-height: 1.72;
+  }
+
+  .emailButton {
+    display: flex;
+    width: 100%;
+    max-width: 260px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .reportDivider {
+    width: calc(100vw - 2rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSection {
+    padding-top: 2rem;
+  }
+}

@@ -1,0 +1,158 @@
+.pageWrap {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  background: #070707;
+  color: #161616;
+}
+
+.contentContainer {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.heroSection {
+  padding: 3.35rem 0 2.75rem;
+}
+
+.heroSection h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3.1vw, 2.85rem);
+  line-height: 1.16;
+  color: #39ff14;
+  text-align: center;
+}
+
+.heroLead {
+  margin: 1.3rem auto 0;
+  max-width: 880px;
+  font-size: clamp(1rem, 1.2vw, 1.13rem);
+  line-height: 1.85;
+  color: white;
+  text-align: center;
+}
+
+.heroSection h2 {
+  margin: 2.75rem 0 0;
+  font-size: clamp(2.2rem, 3.2vw, 3rem);
+  line-height: 1.2;
+  color: #39ff14;
+}
+
+.storyBody {
+  margin-top: 1.3rem;
+  display: grid;
+  gap: 1.35rem;
+  background-color: rgb(24, 24, 24);
+  padding: 1rem 0;
+}
+
+.storyDivider {
+  height: 2px;
+  width: calc(100vw - 3rem);
+  max-width: none;
+  margin: 1.6rem 0 0;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #39ff14;
+}
+
+.storyHeading {
+  margin: 0;
+  font-size: clamp(1.9rem, 2.8vw, 2.6rem);
+  line-height: 1.2;
+  color: #39ff14;
+  text-align: center;
+}
+
+.storyBody p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.95;
+  color: white;
+  text-align: center;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.closingLine {
+  font-weight: 600;
+  color: #191919;
+}
+
+.fraudHighlight {
+  color: rgb(255, 3, 3);
+  font-size: 1.3em;
+  font-weight: 800;
+}
+
+.linksSection {
+  border-top: 1px solid #e6e6e6;
+  padding: 2.35rem 0 2.8rem;
+}
+
+.linksTitle {
+  margin: 0 0 0.85rem;
+  color: #111111;
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+
+.linksGrid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.linksGrid a {
+  color: #2d2d2d;
+  transition: color 0.2s ease;
+}
+
+.linksGrid a:hover {
+  color: #000000;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .heroSection {
+    padding: 2.3rem 0 2.1rem;
+  }
+
+  .contentContainer {
+    padding: 0 1rem;
+  }
+
+  .heroSection h2 {
+    margin-top: 2rem;
+    font-size: clamp(1.65rem, 6vw, 2.2rem);
+  }
+
+  .storyHeading {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+
+  .storyBody p {
+    line-height: 1.78;
+    font-size: 0.94rem;
+    max-width: 100%;
+    padding: 0 0.75rem;
+  }
+
+  .storyDivider {
+    width: calc(100vw - 2rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSection h1 {
+    font-size: 1.9rem;
+  }
+
+  .heroLead {
+    font-size: 0.95rem;
+    line-height: 1.72;
+  }
+}

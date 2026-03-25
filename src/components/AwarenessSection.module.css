@@ -1,0 +1,120 @@
+.awarenessSection {
+  background: #000;
+  color: #fff;
+  padding: 80px 60px;
+  text-align: center;
+  width: 100vw;
+  left: 50%;
+  transform: translateX(-50%);
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(57, 255, 20, 0.1), transparent 42%),
+    #000;
+}
+
+.awarenessTitle {
+  color: #39ff14;
+  font-size: 48px;
+  margin-bottom: 50px;
+  text-shadow: 0 0 14px rgba(57, 255, 20, 0.28);
+  animation: fadeInUp 0.55s ease both;
+}
+
+.awarenessGrid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.awarenessCard {
+  width: 300px;
+  border: 1px solid #111;
+  padding: 20px;
+  text-align: left;
+  background: linear-gradient(180deg, #111111, #070707);
+  border-radius: 10px;
+  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+  animation: cardIn 0.5s ease both;
+}
+
+.topRed {
+  color: red;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.greenLine {
+  height: 3px;
+  background: #39ff14;
+  margin: 10px 0 20px;
+}
+
+.bigText {
+  font-size: 40px;
+  font-weight: 700;
+  color: #ccc;
+  line-height: 1.1;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.date {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.cardBottom h3 {
+  color: #39ff14;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.cardBottom p {
+  font-size: 13px;
+  color: #ccc;
+}
+
+.awarenessCard:hover {
+  transform: translateY(-5px);
+  border-color: #39ff14;
+  box-shadow: 0 12px 24px rgba(57, 255, 20, 0.16);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .awarenessSection {
+    padding: 56px 20px;
+  }
+
+  .bigText {
+    font-size: 28px;
+  }
+
+  .topRed {
+    font-size: 26px;
+  }
+}

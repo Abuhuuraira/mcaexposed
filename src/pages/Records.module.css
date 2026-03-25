@@ -1,0 +1,265 @@
+.pageWrap {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  background: #070707;
+  color: #ffffff;
+}
+
+.contentContainer {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.heroSection {
+  padding: 3rem 0 2.6rem;
+  background:
+    radial-gradient(circle at 30% 0%, rgba(57, 255, 20, 0.16), transparent 40%),
+    #070707;
+}
+
+.heroSection h1 {
+  margin: 0;
+  color: #39ff14;
+  font-size: clamp(2.1rem, 3.6vw, 3.2rem);
+  line-height: 1.15;
+  text-shadow: 0 0 14px rgba(57, 255, 20, 0.35);
+  animation: fadeInUp 0.6s ease both;
+}
+
+.filterRow {
+  margin-top: 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.1rem;
+  color: #cfcfcf;
+}
+
+.filterBtn {
+  border: 1px solid #2a2a2a;
+  background: transparent;
+  color: #cfcfcf;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  border-radius: 999px;
+  transition: transform 0.22s ease, border-color 0.22s ease, color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease;
+  animation: fadeInUp 0.45s ease both;
+}
+
+.filterBtn:hover {
+  border-color: #39ff14;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(57, 255, 20, 0.2);
+}
+
+.filterActive {
+  border-color: #39ff14;
+  background: rgba(57, 255, 20, 0.08);
+  color: #39ff14;
+}
+
+.postsGrid {
+  margin-top: 1.6rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.3rem;
+}
+
+.postCard {
+  border: 1px solid #1f1f1f;
+  background: linear-gradient(180deg, #141414, #0f0f0f);
+  display: grid;
+  grid-template-columns: 34% 1fr;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+  animation: cardIn 0.5s ease both;
+  animation-delay: calc(var(--card-index, 0) * 80ms);
+}
+
+.postCard:hover {
+  transform: translateY(-4px);
+  border-color: #39ff14;
+  box-shadow: 0 14px 30px rgba(57, 255, 20, 0.15);
+}
+
+.postCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 20%, rgba(57, 255, 20, 0.08) 50%, transparent 80%);
+  opacity: 0;
+  transform: translateX(-40%);
+  transition: opacity 0.3s ease, transform 0.45s ease;
+  pointer-events: none;
+}
+
+.postCard:hover::after {
+  opacity: 1;
+  transform: translateX(40%);
+}
+
+.postCard img {
+  width: 100%;
+  height: 100%;
+  min-height: 170px;
+  object-fit: cover;
+}
+
+.cardBody {
+  padding: 0.95rem 1rem;
+}
+
+.cardBody h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.06rem;
+  line-height: 1.4;
+}
+
+.excerpt {
+  margin: 0.6rem 0 0;
+  color: #c9c9c9;
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.metaRow {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+  color: #9a9a9a;
+  font-size: 0.8rem;
+}
+
+.linksSection {
+  border-top: 1px solid #202020;
+  padding: 2.2rem 0 2.6rem;
+}
+
+.linksSection h2 {
+  margin: 0 0 0.85rem;
+  color: #ffffff;
+  font-size: 1.35rem;
+}
+
+.linksGrid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.linksGrid a {
+  color: #d8d8d8;
+}
+
+.linksGrid a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.recordsDivider {
+  height: 2px;
+  width: calc(100vw - 3rem);
+  margin: 0 auto;
+  background-color: #39ff14;
+  box-shadow: 0 0 12px rgba(57, 255, 20, 0.55);
+  animation: pulseDivider 2.8s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulseDivider {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(57, 255, 20, 0.7);
+  }
+}
+
+@media (max-width: 900px) {
+  .contentContainer {
+    padding: 0 1.1rem;
+  }
+
+  .heroSection {
+    padding: 2.4rem 0 2.1rem;
+  }
+
+  .filterRow {
+    gap: 0.65rem;
+  }
+
+  .filterBtn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.68rem;
+  }
+
+  .postsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .postCard {
+    grid-template-columns: 38% 1fr;
+  }
+
+  .cardBody h3 {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .contentContainer {
+    padding: 0 0.9rem;
+  }
+
+  .heroSection h1 {
+    font-size: clamp(1.8rem, 7vw, 2.3rem);
+  }
+
+  .postCard {
+    grid-template-columns: 1fr;
+  }
+
+  .postCard img {
+    min-height: 210px;
+  }
+
+  .cardBody {
+    padding: 0.85rem 0.85rem 1rem;
+  }
+
+  .metaRow {
+    font-size: 0.76rem;
+  }
+
+  .recordsDivider {
+    width: calc(100vw - 1.5rem);
+  }
+}
