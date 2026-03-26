@@ -10,6 +10,7 @@ export type Post = {
   date: string
   readTime: string
   image: string
+  contentImage?: string
   source: 'default' | 'custom'
 }
 

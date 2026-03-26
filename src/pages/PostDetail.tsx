@@ -31,6 +31,9 @@ function PostDetail() {
 
               <p className={styles.excerpt}>{post.excerpt}</p>
               <article className={styles.content}>{post.content}</article>
+              {post.contentImage && (
+                <img src={post.contentImage} alt={`${post.title} content`} className={styles.contentImage} />
+              )}
 
               <Link to="/records" className={styles.backLink}>
                 Back to Records

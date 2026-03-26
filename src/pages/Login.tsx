@@ -7,10 +7,11 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -19,12 +20,16 @@ export default function Login() {
       return;
     }
 
-    if (login(username, password)) {
+    setIsSubmitting(true);
+
+    if (await login(username, password)) {
       navigate('/dashboard');
     } else {
       setError('Invalid username or password');
       setPassword('');
     }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -60,16 +65,10 @@ export default function Login() {
 
           {error && <div className={styles.error}>{error}</div>}
 
-          <button type="submit" className={styles.button}>
-            Login to Dashboard
+          <button type="submit" className={styles.button} disabled={isSubmitting}>
+            {isSubmitting ? 'Checking...' : 'Login to Dashboard'}
           </button>
         </form>
-
-        <div className={styles.demo}>
-          <p className={styles.demoTitle}>Demo Credentials:</p>
-          <p>Username: <strong>admin</strong></p>
-          <p>Password: <strong>admin123</strong></p>
-        </div>
       </div>
     </div>
   );

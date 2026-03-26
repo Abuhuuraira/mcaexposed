@@ -20,6 +20,7 @@ type FormState = {
   date: string
   readTime: string
   image: string
+  contentImage: string
 }
 
 const defaultForm: FormState = {
@@ -30,7 +31,16 @@ const defaultForm: FormState = {
   date: '',
   readTime: '',
   image: '',
+  contentImage: '',
 }
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result ?? ''))
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
 
 function Dashboard() {
   const [form, setForm] = useState<FormState>(defaultForm)
@@ -49,6 +59,25 @@ function Dashboard() {
     (key: keyof FormState) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       setForm((prev) => ({ ...prev, [key]: event.target.value }))
+    }
+
+  const onImageFileChange =
+    (key: 'image' | 'contentImage') =>
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = event.target.files?.[0]
+      if (!selectedFile) {
+        return
+      }
+
+      try {
+        const dataUrl = await readFileAsDataUrl(selectedFile)
+        setForm((prev) => ({ ...prev, [key]: dataUrl }))
+        setMessage('Image uploaded successfully.')
+      } catch {
+        setMessage('Image upload failed. Please try another image.')
+      } finally {
+        event.target.value = ''
+      }
     }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -86,6 +115,7 @@ function Dashboard() {
       date: post.date,
       readTime: post.readTime,
       image: post.image,
+      contentImage: post.contentImage ?? '',
     })
     setMessage('Editing selected post...')
   }
@@ -151,9 +181,15 @@ function Dashboard() {
             </div>
 
             <label>
-              Cover Image URL
-              <input value={form.image} onChange={onChange('image')} placeholder="https://..." />
+              Cover Image Upload
+              <input type="file" accept="image/*" onChange={onImageFileChange('image')} />
+              <span className={styles.uploadNote}>Upload an image file from your device.</span>
             </label>
+            {form.image && (
+              <div className={styles.imagePreview}>
+                <img src={form.image} alt="Cover preview" className={styles.previewImage} />
+              </div>
+            )}
 
             <label>
               Excerpt
@@ -164,6 +200,17 @@ function Dashboard() {
               Full Post Content
               <textarea rows={8} value={form.content} onChange={onChange('content')} />
             </label>
+
+            <label>
+              Image Below Post Content
+              <input type="file" accept="image/*" onChange={onImageFileChange('contentImage')} />
+              <span className={styles.uploadNote}>Optional image shown below the full post content.</span>
+            </label>
+            {form.contentImage && (
+              <div className={styles.imagePreview}>
+                <img src={form.contentImage} alt="Content image preview" className={styles.previewImage} />
+              </div>
+            )}
 
             <div className={styles.actionsRow}>
               <button type="submit">{editingId ? 'Update Post' : 'Save Post'}</button>
