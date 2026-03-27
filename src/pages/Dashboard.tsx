@@ -46,6 +46,7 @@ function Dashboard() {
   const [form, setForm] = useState<FormState>(defaultForm)
   const [message, setMessage] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [savedPost, setSavedPost] = useState<Post | null>(null)
   const [allPosts, setAllPosts] = useState<Post[]>(getAllPosts())
   const navigate = useNavigate()
   const { logout, username } = useAuth()
@@ -93,16 +94,19 @@ function Dashboard() {
       setMessage('Post updated successfully!')
       setEditingId(null)
     } else {
-      addCustomPost(form)
-      setMessage('Post saved! Redirecting to records...')
-
-      setTimeout(() => {
-        navigate(`/records?category=${form.category === 'The Fraud Files' ? 'the-fraud-files' : form.category === 'MCA Awareness' ? 'mca-awareness' : 'other'}`)
-      }, 700)
+      const createdPost = addCustomPost(form)
+      setSavedPost(createdPost)
+      setMessage('Post saved successfully!')
     }
 
     setAllPosts(getAllPosts())
     setForm(defaultForm)
+  }
+
+  const startNewPost = () => {
+    setEditingId(null)
+    setForm(defaultForm)
+    setMessage('Ready to add a new post.')
   }
 
   const startEdit = (post: Post) => {
@@ -120,10 +124,21 @@ function Dashboard() {
     setMessage('Editing selected post...')
   }
 
-  const removePost = (id: string) => {
-    deleteCustomPost(id)
+  const removePost = (post: Post) => {
+    const shouldDelete = window.confirm(`Delete "${post.title}"? This action cannot be undone.`)
+
+    if (!shouldDelete) {
+      return
+    }
+
+    if (post.source === 'default') {
+      setMessage('Default records cannot be deleted.')
+      return
+    }
+
+    deleteCustomPost(post.id)
     setAllPosts(getAllPosts())
-    if (editingId === id) {
+    if (editingId === post.id) {
       setEditingId(null)
       setForm(defaultForm)
     }
@@ -214,6 +229,13 @@ function Dashboard() {
 
             <div className={styles.actionsRow}>
               <button type="submit">{editingId ? 'Update Post' : 'Save Post'}</button>
+              <button
+                type="button"
+                className={styles.newPostBtn}
+                onClick={startNewPost}
+              >
+                Add New Post
+              </button>
               {editingId && (
                 <button
                   type="button"
@@ -249,7 +271,7 @@ function Dashboard() {
                       <button
                         type="button"
                         className={styles.deleteBtn}
-                        onClick={() => removePost(post.id)}
+                        onClick={() => removePost(post)}
                       >
                         Delete
                       </button>
@@ -259,6 +281,30 @@ function Dashboard() {
               </div>
             )}
           </section>
+
+          {savedPost && (
+            <div className={styles.popupOverlay} role="dialog" aria-modal="true" aria-labelledby="post-saved-title">
+              <div className={styles.popupCard}>
+                <h3 id="post-saved-title">Post saved successfully</h3>
+                <p>What would you like to do next?</p>
+                <div className={styles.popupActions}>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/post/${savedPost.slug}`)}
+                  >
+                    View Post
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.stayBtn}
+                    onClick={() => setSavedPost(null)}
+                  >
+                    Stay on Dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

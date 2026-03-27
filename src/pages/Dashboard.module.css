@@ -148,6 +148,12 @@ button {
   border: 1px solid #3a3a3a;
 }
 
+.newPostBtn {
+  background: #16310f;
+  color: #9fff8a;
+  border: 1px solid #2b7c1f;
+}
+
 .message {
   color: #39ff14;
 }
@@ -235,6 +241,47 @@ button {
   background: #251313;
   border: 1px solid #6f2a2a;
   color: #ff8b8b;
+}
+
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 1rem;
+}
+
+.popupCard {
+  width: min(420px, 100%);
+  background: #121212;
+  border: 1px solid #2f2f2f;
+  border-radius: 12px;
+  padding: 1.2rem;
+}
+
+.popupCard h3 {
+  margin: 0;
+  color: #39ff14;
+  font-size: 1.15rem;
+}
+
+.popupCard p {
+  margin: 0.65rem 0 1rem;
+  color: #cdcdcd;
+}
+
+.popupActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.stayBtn {
+  background: #1b1b1b;
+  color: #e8e8e8;
+  border: 1px solid #3a3a3a;
 }
 
 .divider {
