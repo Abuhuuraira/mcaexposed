@@ -50,6 +50,8 @@ function Dashboard() {
   const [allPosts, setAllPosts] = useState<Post[]>(getAllPosts())
   const navigate = useNavigate()
   const { logout, username } = useAuth()
+  const customPostsCount = allPosts.filter((post) => post.source === 'custom').length
+  const defaultPostsCount = allPosts.length - customPostsCount
 
   const handleLogout = () => {
     logout()
@@ -156,9 +158,23 @@ function Dashboard() {
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <div className={styles.dashboardHeader}>
-            <div>
+            <div className={styles.headerContent}>
               <h1>Post Dashboard</h1>
-              <p>Create and save post content so it appears on The Records page.</p>
+              <p>Create, edit, and manage records that appear on The Records page.</p>
+              <div className={styles.statsRow}>
+                <div className={styles.statChip}>
+                  <span className={styles.statLabel}>Total Posts</span>
+                  <strong>{allPosts.length}</strong>
+                </div>
+                <div className={styles.statChip}>
+                  <span className={styles.statLabel}>Custom</span>
+                  <strong>{customPostsCount}</strong>
+                </div>
+                <div className={styles.statChip}>
+                  <span className={styles.statLabel}>Default</span>
+                  <strong>{defaultPostsCount}</strong>
+                </div>
+              </div>
             </div>
             <div className={styles.userInfo}>
               <span className={styles.userLabel}>Logged in as: <strong>{username}</strong></span>
@@ -169,63 +185,75 @@ function Dashboard() {
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.grid}>
-              <label>
-                Title
-                <input value={form.title} onChange={onChange('title')} />
-              </label>
+            <section className={styles.formSection}>
+              <h2>Post Details</h2>
+              <div className={styles.grid}>
+                <label>
+                  Title
+                  <input value={form.title} onChange={onChange('title')} />
+                </label>
 
-              <label>
-                Category
-                <select value={form.category} onChange={onChange('category')}>
-                  <option value="MCA Awareness">MCA Awareness</option>
-                  <option value="The Fraud Files">The Fraud Files</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
+                <label>
+                  Category
+                  <select value={form.category} onChange={onChange('category')}>
+                    <option value="MCA Awareness">MCA Awareness</option>
+                    <option value="The Fraud Files">The Fraud Files</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </label>
 
-              <label>
-                Date
-                <input placeholder="Aug 25, 2025" value={form.date} onChange={onChange('date')} />
-              </label>
+                <label>
+                  Date
+                  <input placeholder="Aug 25, 2025" value={form.date} onChange={onChange('date')} />
+                </label>
 
-              <label>
-                Read Time
-                <input placeholder="4 min read" value={form.readTime} onChange={onChange('readTime')} />
-              </label>
-            </div>
-
-            <label>
-              Cover Image Upload
-              <input type="file" accept="image/*" onChange={onImageFileChange('image')} />
-              <span className={styles.uploadNote}>Upload an image file from your device.</span>
-            </label>
-            {form.image && (
-              <div className={styles.imagePreview}>
-                <img src={form.image} alt="Cover preview" className={styles.previewImage} />
+                <label>
+                  Read Time
+                  <input placeholder="4 min read" value={form.readTime} onChange={onChange('readTime')} />
+                </label>
               </div>
-            )}
 
-            <label>
-              Excerpt
-              <textarea rows={3} value={form.excerpt} onChange={onChange('excerpt')} />
-            </label>
+              <label>
+                Excerpt
+                <textarea rows={3} value={form.excerpt} onChange={onChange('excerpt')} />
+              </label>
 
-            <label>
-              Full Post Content
-              <textarea rows={8} value={form.content} onChange={onChange('content')} />
-            </label>
+              <label>
+                Full Post Content
+                <textarea rows={8} value={form.content} onChange={onChange('content')} />
+              </label>
+            </section>
 
-            <label>
-              Image Below Post Content
-              <input type="file" accept="image/*" onChange={onImageFileChange('contentImage')} />
-              <span className={styles.uploadNote}>Optional image shown below the full post content.</span>
-            </label>
-            {form.contentImage && (
-              <div className={styles.imagePreview}>
-                <img src={form.contentImage} alt="Content image preview" className={styles.previewImage} />
+            <section className={styles.formSection}>
+              <h2>Media</h2>
+              <div className={styles.mediaGrid}>
+                <div className={styles.mediaCard}>
+                  <label>
+                    Cover Image Upload
+                    <input type="file" accept="image/*" onChange={onImageFileChange('image')} />
+                    <span className={styles.uploadNote}>Upload an image file from your device.</span>
+                  </label>
+                  {form.image && (
+                    <div className={styles.imagePreview}>
+                      <img src={form.image} alt="Cover preview" className={styles.previewImage} />
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.mediaCard}>
+                  <label>
+                    Image Below Post Content
+                    <input type="file" accept="image/*" onChange={onImageFileChange('contentImage')} />
+                    <span className={styles.uploadNote}>Optional image shown below the full post content.</span>
+                  </label>
+                  {form.contentImage && (
+                    <div className={styles.imagePreview}>
+                      <img src={form.contentImage} alt="Content image preview" className={styles.previewImage} />
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </section>
 
             <div className={styles.actionsRow}>
               <button type="submit">{editingId ? 'Update Post' : 'Save Post'}</button>
@@ -257,11 +285,21 @@ function Dashboard() {
               <div className={styles.savedList}>
                 {allPosts.map((post) => (
                   <article key={post.id} className={styles.savedItem}>
-                    <div>
+                    <img src={post.image} alt={post.title} className={styles.savedThumb} />
+
+                    <div className={styles.savedContent}>
+                      <div className={styles.savedTopRow}>
+                        <span className={post.source === 'custom' ? styles.customBadge : styles.defaultBadge}>
+                          {post.source === 'custom' ? 'Custom' : 'Default'}
+                        </span>
+                        <span className={styles.categoryBadge}>{post.category}</span>
+                      </div>
                       <h3>{post.title}</h3>
-                      <p>
-                        {post.category} • {post.date} • {post.readTime}
-                      </p>
+                      <p>{post.excerpt}</p>
+                      <div className={styles.savedMeta}>
+                        <span>{post.date}</span>
+                        <span>{post.readTime}</span>
+                      </div>
                     </div>
 
                     <div className={styles.savedActions}>
