@@ -8,6 +8,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -55,14 +56,24 @@ export default function Login() {
 
             <div className={styles.formGroup}>
               <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className={styles.input}
-              />
+              <div className={styles.passwordWrapper}>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className={styles.input}
+                />
+                <button
+                  type="button"
+                  className={styles.eyeButton}
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
             </div>
 
             {error && <div className={styles.error}>{error}</div>}

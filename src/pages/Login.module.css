@@ -73,15 +73,26 @@
   color: #d4e8d8;
 }
 
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .input {
   width: 100%;
   padding: 0.76rem 0.78rem;
+  padding-right: 2.6rem;
   border-radius: 10px;
   border: 1px solid #2f4537;
   background: rgba(0, 0, 0, 0.2);
   color: #effaf1;
   font-size: 0.92rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.passwordWrapper .input {
+  padding-right: 2.6rem;
 }
 
 .input:focus {
@@ -93,6 +104,29 @@
 
 .input::placeholder {
   color: #8daf95;
+}
+
+.eyeButton {
+  position: absolute;
+  right: 0.65rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  color: #a7ff98;
+}
+
+.eyeButton:hover {
+  opacity: 0.7;
+}
+
+.eyeButton:active {
+  opacity: 0.5;
 }
 
 .error {

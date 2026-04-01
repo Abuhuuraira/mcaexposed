@@ -12,6 +12,7 @@ export type Post = {
   image: string
   contentImage?: string
   source: 'default' | 'custom'
+  published?: boolean
 }
 
 const STORAGE_KEY = 'mca_custom_posts'
@@ -237,7 +238,43 @@ export const deleteCustomPost = (id: string) => {
   saveCustomPosts(updated)
 }
 
-export const getAllPosts = (): Post[] => [...getCustomPosts(), ...defaultPosts]
+export const getAllPosts = (onlyPublished = false): Post[] => {
+  const allPosts = [...getCustomPosts(), ...defaultPosts]
+  if (onlyPublished) {
+    return allPosts.filter((post) => post.published !== false)
+  }
+  return allPosts
+}
+
+export const publishPost = (id: string): Post | undefined => {
+  const current = getCustomPosts()
+  const existing = current.find((post) => post.id === id)
+
+  if (!existing) {
+    return undefined
+  }
+
+  const updated = current.map((post) =>
+    post.id === id ? { ...post, published: true } : post,
+  )
+  saveCustomPosts(updated)
+  return updated.find((post) => post.id === id)
+}
+
+export const unpublishPost = (id: string): Post | undefined => {
+  const current = getCustomPosts()
+  const existing = current.find((post) => post.id === id)
+
+  if (!existing) {
+    return undefined
+  }
+
+  const updated = current.map((post) =>
+    post.id === id ? { ...post, published: false } : post,
+  )
+  saveCustomPosts(updated)
+  return updated.find((post) => post.id === id)
+}
 
 export const findPostBySlug = (slug: string): Post | undefined =>
   getAllPosts().find((post) => post.slug === slug)

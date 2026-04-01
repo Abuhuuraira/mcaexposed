@@ -43,7 +43,7 @@ function Records() {
   }, [searchParams])
 
   useEffect(() => {
-    setAllPosts(getAllPosts())
+    setAllPosts(getAllPosts(true))
   }, [])
 
   const filteredPosts = useMemo(() => {

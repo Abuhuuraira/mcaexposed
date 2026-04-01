@@ -6,6 +6,8 @@ import {
   addCustomPost,
   deleteCustomPost,
   getAllPosts,
+  publishPost,
+  unpublishPost,
   type Post,
   type PostCategory,
   updatePost,
@@ -47,11 +49,13 @@ function Dashboard() {
   const [message, setMessage] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [savedPost, setSavedPost] = useState<Post | null>(null)
+  const [newPostId, setNewPostId] = useState<string | null>(null)
   const [allPosts, setAllPosts] = useState<Post[]>(getAllPosts())
   const navigate = useNavigate()
   const { logout, username } = useAuth()
   const customPostsCount = allPosts.filter((post) => post.source === 'custom').length
   const defaultPostsCount = allPosts.length - customPostsCount
+  const publishedCount = allPosts.filter((post) => post.published === true).length
 
   const handleLogout = () => {
     logout()
@@ -98,7 +102,13 @@ function Dashboard() {
     } else {
       const createdPost = addCustomPost(form)
       setSavedPost(createdPost)
-      setMessage('Post saved successfully!')
+      setNewPostId(createdPost.id)
+      setMessage('Post saved successfully and added to the list!')
+      
+      // Auto-close modal after 2 seconds
+      setTimeout(() => {
+        setSavedPost(null)
+      }, 2000)
     }
 
     setAllPosts(getAllPosts())
@@ -153,6 +163,42 @@ function Dashboard() {
     setMessage('Edit canceled.')
   }
 
+  const handlePublish = (post: Post) => {
+    publishPost(post.id)
+    setAllPosts(getAllPosts())
+    setMessage(`"${post.title}" is now live on the Records page!`)
+  }
+
+  const handleUnpublish = (post: Post) => {
+    unpublishPost(post.id)
+    setAllPosts(getAllPosts())
+    setMessage(`"${post.title}" has been removed from the Records page.`)
+  }
+
+  const handlePublishPostDirect = () => {
+    if (!form.title || !form.excerpt || !form.content || !form.date || !form.readTime || !form.image) {
+      setMessage('Please fill all fields before publishing the post.')
+      return
+    }
+
+    let postId = editingId
+    if (!editingId) {
+      const createdPost = addCustomPost(form)
+      postId = createdPost.id
+    } else {
+      updatePost(editingId, form)
+    }
+
+    if (postId) {
+      publishPost(postId)
+      setMessage('Post published successfully and is now live!')
+      setEditingId(null)
+      setForm(defaultForm)
+    }
+
+    setAllPosts(getAllPosts())
+  }
+
   return (
     <div className={styles.pageWrap}>
       <section className={styles.heroSection}>
@@ -169,6 +215,10 @@ function Dashboard() {
                 <div className={styles.statChip}>
                   <span className={styles.statLabel}>Custom</span>
                   <strong>{customPostsCount}</strong>
+                </div>
+                <div className={styles.statChip}>
+                  <span className={styles.statLabel}>Published</span>
+                  <strong>{publishedCount}</strong>
                 </div>
                 <div className={styles.statChip}>
                   <span className={styles.statLabel}>Default</span>
@@ -259,6 +309,13 @@ function Dashboard() {
               <button type="submit">{editingId ? 'Update Post' : 'Save Post'}</button>
               <button
                 type="button"
+                className={styles.publishActionBtn}
+                onClick={handlePublishPostDirect}
+              >
+                Publish Post
+              </button>
+              <button
+                type="button"
                 className={styles.newPostBtn}
                 onClick={startNewPost}
               >
@@ -284,7 +341,7 @@ function Dashboard() {
             ) : (
               <div className={styles.savedList}>
                 {allPosts.map((post) => (
-                  <article key={post.id} className={styles.savedItem}>
+                  <article key={post.id} className={`${styles.savedItem} ${newPostId === post.id ? styles.newPost : ''}`}>
                     <img src={post.image} alt={post.title} className={styles.savedThumb} />
 
                     <div className={styles.savedContent}>
@@ -293,6 +350,9 @@ function Dashboard() {
                           {post.source === 'custom' ? 'Custom' : 'Default'}
                         </span>
                         <span className={styles.categoryBadge}>{post.category}</span>
+                        {post.published === true && (
+                          <span className={styles.publishedBadge}>Live</span>
+                        )}
                       </div>
                       <h3>{post.title}</h3>
                       <p>{post.excerpt}</p>
@@ -306,6 +366,24 @@ function Dashboard() {
                       <button type="button" onClick={() => startEdit(post)}>
                         Edit
                       </button>
+                      {post.source === 'custom' && post.published !== true && (
+                        <button
+                          type="button"
+                          className={styles.publishBtn}
+                          onClick={() => handlePublish(post)}
+                        >
+                          Publish
+                        </button>
+                      )}
+                      {post.source === 'custom' && post.published === true && (
+                        <button
+                          type="button"
+                          className={styles.unpublishBtn}
+                          onClick={() => handleUnpublish(post)}
+                        >
+                          Unpublish
+                        </button>
+                      )}
                       <button
                         type="button"
                         className={styles.deleteBtn}
@@ -321,8 +399,8 @@ function Dashboard() {
           </section>
 
           {savedPost && (
-            <div className={styles.popupOverlay} role="dialog" aria-modal="true" aria-labelledby="post-saved-title">
-              <div className={styles.popupCard}>
+            <div className={styles.popupOverlay} role="dialog" aria-modal="true" aria-labelledby="post-saved-title" onClick={() => setSavedPost(null)}>
+              <div className={styles.popupCard} onClick={(e) => e.stopPropagation()}>
                 <h3 id="post-saved-title">Post saved successfully</h3>
                 <p>What would you like to do next?</p>
                 <div className={styles.popupActions}>
