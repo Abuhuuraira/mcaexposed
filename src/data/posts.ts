@@ -171,7 +171,7 @@ export const addCustomPost = (
   const post: Post = {
     ...postInput,
     id: `custom-${Date.now()}`,
-    slug: `${createSlug(postInput.title)}-${Date.now()}`,
+    slug: createSlug(postInput.title),
     source: 'custom',
   }
 
@@ -196,7 +196,7 @@ export const updateCustomPost = (
   const updatedPost: Post = {
     ...existing,
     ...postInput,
-    slug: `${createSlug(postInput.title)}-${id.replace('custom-', '')}`,
+    slug: createSlug(postInput.title),
   }
 
   const updated = current.map((post) => (post.id === id ? updatedPost : post))
@@ -232,7 +232,7 @@ export const updatePost = (
     ...existingPost,
     ...postInput,
     id: existingPost.id,
-    slug: `${createSlug(postInput.title)}-${existingPost.id.replace('default-', '')}`,
+    slug: createSlug(postInput.title),
     source: 'custom',
   }
 
@@ -285,7 +285,10 @@ export const getAllPosts = (onlyPublished = false): Post[] => {
       && !overriddenDefaultTitles.has(normalizeTitle(post.title)),
   )
 
-  const allPosts = [...uniqueCustomPosts, ...visibleDefaultPosts]
+  const allPosts = [...uniqueCustomPosts, ...visibleDefaultPosts].map((post) => ({
+    ...post,
+    slug: createSlug(post.title),
+  }))
   if (onlyPublished) {
     return allPosts.filter((post) => post.published !== false)
   }
@@ -327,4 +330,4 @@ export const unpublishPost = (id: string): Post | undefined => {
 }
 
 export const findPostBySlug = (slug: string): Post | undefined =>
-  getAllPosts().find((post) => post.slug === slug)
+  getAllPosts().find((post) => post.slug === slug || createSlug(post.title) === slug)
