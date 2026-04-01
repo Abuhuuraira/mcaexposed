@@ -1,12 +1,16 @@
 .loginContainer {
   min-height: 100vh;
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
   display: grid;
   place-items: center;
-  padding: 1.2rem;
+  padding: 0;
   background:
-    radial-gradient(circle at 15% 10%, rgba(57, 255, 20, 0.18), transparent 32%),
-    radial-gradient(circle at 90% 85%, rgba(57, 255, 20, 0.12), transparent 28%),
-    linear-gradient(160deg, #050b06 0%, #0b1c12 52%, #060d08 100%);
+    radial-gradient(circle at 8% 12%, rgba(57, 255, 20, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 86%, rgba(56, 189, 248, 0.2), transparent 36%),
+    radial-gradient(circle at 52% 24%, rgba(16, 185, 129, 0.16), transparent 44%),
+    linear-gradient(145deg, #030805 0%, #07140d 38%, #0a1f17 68%, #040a07 100%);
 }
 
 .loginShell {
@@ -21,12 +25,12 @@
 
 .loginBox {
   width: 100%;
-  background: rgba(8, 17, 11, 0.86);
-  border: 1px solid rgba(57, 255, 20, 0.22);
+  background: linear-gradient(160deg, rgba(7, 20, 13, 0.84), rgba(4, 12, 8, 0.9));
+  border: 1px solid rgba(110, 255, 153, 0.2);
   border-radius: 18px;
   padding: clamp(1.25rem, 4vw, 2rem);
-  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(57, 255, 20, 0.08);
+  backdrop-filter: blur(10px);
 }
 
 .badge {
@@ -206,7 +210,7 @@
 
 @media (max-width: 520px) {
   .loginContainer {
-    padding: 0.8rem;
+    padding: 0;
   }
 
   .loginBox {
