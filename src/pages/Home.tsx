@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import styles from './Home.module.css'
 import MissionSection from '../components/MissionSection'
 import RecordsSection from '../components/RecordsSection'
@@ -6,6 +7,21 @@ import ReportSection from '../components/ReportSection'
 import FooterSection from '../components/FooterSection'
 
 function Home() {
+  const subtitleText =
+    'At MCA Exposed, we aim to inform and empower small businesses against fraud in the merchant cash advance industry.'
+  const [typedText, setTypedText] = useState('')
+  const isComplete = typedText.length === subtitleText.length
+
+  useEffect(() => {
+    if (isComplete) return
+
+    const timer = window.setTimeout(() => {
+      setTypedText(subtitleText.slice(0, typedText.length + 1))
+    }, 55)
+
+    return () => window.clearTimeout(timer)
+  }, [typedText, subtitleText, isComplete])
+
   return (
     <>
       <section className={styles.hero}>
@@ -18,9 +34,9 @@ function Home() {
             Scams
           </h1>
 
-          <p className={styles.heroSubtitle}>
-            At MCA Exposed, we aim to inform and empower small businesses
-            against fraud in the merchant cash advance industry.
+          <p className={styles.heroSubtitle} aria-label={subtitleText}>
+            <span>{typedText}</span>
+            {!isComplete && <span className={styles.cursor}>|</span>}
           </p>
         </div>
       </section>

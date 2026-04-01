@@ -30,7 +30,7 @@
   font-size: clamp(2rem, 3vw, 2.8rem);
   line-height: 1.1;
   margin: 0 0 0.9rem;
-  color: #ffffff;
+  color: #39ff14;
   text-shadow: 0 0 14px rgba(57, 255, 20, 0.22);
   animation: fadeInUp 0.62s ease both;
 }

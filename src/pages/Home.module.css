@@ -55,9 +55,16 @@
   font-size: 18px;
   line-height: 1.6;
   max-width: 700px;
+  min-height: 58px;
   margin-left: auto;
   margin-right: auto;
   animation: slideUp 0.7s ease 0.3s both;
+}
+
+.cursor {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
 }
 
 .revealSection {
@@ -127,6 +134,17 @@
   }
 }
 
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
 /* FEATURES WRAPPER */
 .container {
   max-width: 1200px;
@@ -155,6 +173,7 @@
     font-size: 14px;
     line-height: 1.5;
     margin-top: 18px;
+    min-height: 42px;
   }
 }
 
