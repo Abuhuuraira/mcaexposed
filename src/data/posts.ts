@@ -151,17 +151,22 @@ export const getCustomPosts = (): Post[] => {
   }
 }
 
-export const saveCustomPosts = (posts: Post[]) => {
+export const saveCustomPosts = (posts: Post[]): boolean => {
   if (typeof window === 'undefined') {
-    return
+    return false
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
+    return true
+  } catch {
+    return false
+  }
 }
 
 export const addCustomPost = (
   postInput: Omit<Post, 'id' | 'slug' | 'source'>,
-): Post => {
+): Post | undefined => {
   const current = getCustomPosts()
   const post: Post = {
     ...postInput,
@@ -171,7 +176,9 @@ export const addCustomPost = (
   }
 
   const updated = [post, ...current]
-  saveCustomPosts(updated)
+  if (!saveCustomPosts(updated)) {
+    return undefined
+  }
   return post
 }
 
@@ -193,7 +200,9 @@ export const updateCustomPost = (
   }
 
   const updated = current.map((post) => (post.id === id ? updatedPost : post))
-  saveCustomPosts(updated)
+  if (!saveCustomPosts(updated)) {
+    return undefined
+  }
   return updatedPost
 }
 
@@ -228,14 +237,16 @@ export const updatePost = (
 
   // Add to custom posts (will appear first due to getAllPosts order)
   const updated = [updatedPost, ...customPosts]
-  saveCustomPosts(updated)
+  if (!saveCustomPosts(updated)) {
+    return undefined
+  }
   return updatedPost
 }
 
-export const deleteCustomPost = (id: string) => {
+export const deleteCustomPost = (id: string): boolean => {
   const current = getCustomPosts()
   const updated = current.filter((post) => post.id !== id)
-  saveCustomPosts(updated)
+  return saveCustomPosts(updated)
 }
 
 export const getAllPosts = (onlyPublished = false): Post[] => {
@@ -257,7 +268,9 @@ export const publishPost = (id: string): Post | undefined => {
   const updated = current.map((post) =>
     post.id === id ? { ...post, published: true } : post,
   )
-  saveCustomPosts(updated)
+  if (!saveCustomPosts(updated)) {
+    return undefined
+  }
   return updated.find((post) => post.id === id)
 }
 
@@ -272,7 +285,9 @@ export const unpublishPost = (id: string): Post | undefined => {
   const updated = current.map((post) =>
     post.id === id ? { ...post, published: false } : post,
   )
-  saveCustomPosts(updated)
+  if (!saveCustomPosts(updated)) {
+    return undefined
+  }
   return updated.find((post) => post.id === id)
 }
 

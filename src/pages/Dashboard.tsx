@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import FooterSection from '../components/FooterSection'
@@ -44,13 +44,54 @@ const readFileAsDataUrl = (file: File) =>
     reader.readAsDataURL(file)
   })
 
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('Failed to load image'))
+    image.src = src
+  })
+
+const compressImageFile = async (file: File): Promise<string> => {
+  const originalDataUrl = await readFileAsDataUrl(file)
+
+  if (!file.type.startsWith('image/')) {
+    return originalDataUrl
+  }
+
+  const image = await loadImage(originalDataUrl)
+  const maxDimension = 1400
+  const scale = Math.min(1, maxDimension / Math.max(image.width, image.height))
+
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(image.width * scale))
+  canvas.height = Math.max(1, Math.round(image.height * scale))
+
+  const context = canvas.getContext('2d')
+  if (!context) {
+    return originalDataUrl
+  }
+
+  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+
+  const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8)
+
+  return compressedDataUrl.length < originalDataUrl.length
+    ? compressedDataUrl
+    : originalDataUrl
+}
+
 function Dashboard() {
   const [form, setForm] = useState<FormState>(defaultForm)
   const [message, setMessage] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [savedPost, setSavedPost] = useState<Post | null>(null)
   const [newPostId, setNewPostId] = useState<string | null>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [allPosts, setAllPosts] = useState<Post[]>(getAllPosts())
+  const formRef = useRef(form)
+  const pendingImageUploadRef = useRef<Promise<void> | null>(null)
+  const contentInputRef = useRef<HTMLDivElement | null>(null)
   const navigate = useNavigate()
   const { logout, username } = useAuth()
   const customPostsCount = allPosts.filter((post) => post.source === 'custom').length
@@ -65,7 +106,9 @@ function Dashboard() {
   const onChange =
     (key: keyof FormState) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      setForm((prev) => ({ ...prev, [key]: event.target.value }))
+      const nextForm = { ...formRef.current, [key]: event.target.value }
+      formRef.current = nextForm
+      setForm(nextForm)
     }
 
   const onImageFileChange =
@@ -76,31 +119,157 @@ function Dashboard() {
         return
       }
 
-      try {
-        const dataUrl = await readFileAsDataUrl(selectedFile)
-        setForm((prev) => ({ ...prev, [key]: dataUrl }))
-        setMessage('Image uploaded successfully.')
-      } catch {
-        setMessage('Image upload failed. Please try another image.')
-      } finally {
-        event.target.value = ''
+      setIsUploadingImage(true)
+
+      const uploadTask = (async () => {
+        try {
+          const dataUrl = await compressImageFile(selectedFile)
+          const nextForm = { ...formRef.current, [key]: dataUrl }
+          formRef.current = nextForm
+          setForm(nextForm)
+          setMessage('Image uploaded successfully.')
+        } catch {
+          setMessage('Image upload failed. Please try another image.')
+        } finally {
+          setIsUploadingImage(false)
+          event.target.value = ''
+        }
+      })()
+
+      pendingImageUploadRef.current = uploadTask
+      await uploadTask
+
+      if (pendingImageUploadRef.current === uploadTask) {
+        pendingImageUploadRef.current = null
       }
     }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const stripHtml = (value: string) =>
+    value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+
+  useEffect(() => {
+    const input = contentInputRef.current
+    if (!input) {
+      return
+    }
+
+    if (input.innerHTML !== form.content) {
+      input.innerHTML = form.content
+    }
+  }, [form.content])
+
+  const syncContentFromEditor = () => {
+    const input = contentInputRef.current
+    if (!input) {
+      return
+    }
+
+    const nextForm = { ...formRef.current, content: input.innerHTML }
+    formRef.current = nextForm
+    setForm(nextForm)
+  }
+
+  const focusEditor = () => {
+    contentInputRef.current?.focus()
+  }
+
+  const runCommand = (command: string, value?: string) => {
+    focusEditor()
+    document.execCommand(command, false, value)
+    syncContentFromEditor()
+  }
+
+  const handleFormatContent = (action: 'bold' | 'italic' | 'heading' | 'quote' | 'bullet' | 'number' | 'link') => {
+    if (action === 'bold') {
+      runCommand('bold')
+      return
+    }
+
+    if (action === 'italic') {
+      runCommand('italic')
+      return
+    }
+
+    if (action === 'heading') {
+      runCommand('formatBlock', 'h2')
+      return
+    }
+
+    if (action === 'quote') {
+      runCommand('formatBlock', 'blockquote')
+      return
+    }
+
+    if (action === 'bullet') {
+      runCommand('insertUnorderedList')
+      return
+    }
+
+    if (action === 'number') {
+      runCommand('insertOrderedList')
+      return
+    }
+
+    if (action === 'link') {
+      const link = window.prompt('Enter URL', 'https://')
+      if (!link) {
+        return
+      }
+      runCommand('createLink', link)
+    }
+  }
+
+  const waitForPendingImageUpload = async () => {
+    if (!pendingImageUploadRef.current) {
+      return
+    }
+
+    setMessage('Finishing image upload before saving...')
+    await pendingImageUploadRef.current
+  }
+
+  const getSanitizedFormPayload = (source: FormState): FormState => {
+    const normalizedContentImage =
+      source.contentImage && source.contentImage !== source.image ? source.contentImage : ''
+
+    return {
+      ...source,
+      contentImage: normalizedContentImage,
+    }
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    if (!form.title || !form.excerpt || !form.content || !form.date || !form.readTime || !form.image) {
+    await waitForPendingImageUpload()
+    const payload = getSanitizedFormPayload(formRef.current)
+
+    if (
+      !payload.title
+      || !payload.excerpt
+      || !stripHtml(payload.content)
+      || !payload.date
+      || !payload.readTime
+      || !payload.image
+    ) {
       setMessage('Please fill all fields before saving the post.')
       return
     }
 
     if (editingId) {
-      updatePost(editingId, form)
+      const updatedPost = updatePost(editingId, payload)
+      if (!updatedPost) {
+        setMessage('Post update failed. Image may be too large or browser storage is full.')
+        return
+      }
       setMessage('Post updated successfully!')
       setEditingId(null)
     } else {
-      const createdPost = addCustomPost(form)
+      const createdPost = addCustomPost(payload)
+      if (!createdPost) {
+        setMessage('Post save failed. Image may be too large or browser storage is full.')
+        return
+      }
       setSavedPost(createdPost)
       setNewPostId(createdPost.id)
       setMessage('Post saved successfully and added to the list!')
@@ -112,18 +281,20 @@ function Dashboard() {
     }
 
     setAllPosts(getAllPosts())
+    formRef.current = defaultForm
     setForm(defaultForm)
   }
 
   const startNewPost = () => {
     setEditingId(null)
+    formRef.current = defaultForm
     setForm(defaultForm)
     setMessage('Ready to add a new post.')
   }
 
   const startEdit = (post: Post) => {
     setEditingId(post.id)
-    setForm({
+    const nextForm: FormState = {
       title: post.title,
       excerpt: post.excerpt,
       content: post.content,
@@ -132,7 +303,9 @@ function Dashboard() {
       readTime: post.readTime,
       image: post.image,
       contentImage: post.contentImage ?? '',
-    })
+    }
+    formRef.current = nextForm
+    setForm(nextForm)
     setMessage('Editing selected post...')
   }
 
@@ -148,10 +321,15 @@ function Dashboard() {
       return
     }
 
-    deleteCustomPost(post.id)
+    const deleted = deleteCustomPost(post.id)
+    if (!deleted) {
+      setMessage('Post delete failed. Please try again.')
+      return
+    }
     setAllPosts(getAllPosts())
     if (editingId === post.id) {
       setEditingId(null)
+      formRef.current = defaultForm
       setForm(defaultForm)
     }
     setMessage('Post deleted successfully.')
@@ -159,40 +337,74 @@ function Dashboard() {
 
   const cancelEdit = () => {
     setEditingId(null)
+    formRef.current = defaultForm
     setForm(defaultForm)
     setMessage('Edit canceled.')
   }
 
   const handlePublish = (post: Post) => {
-    publishPost(post.id)
+    const published = publishPost(post.id)
     setAllPosts(getAllPosts())
+    if (!published) {
+      setMessage('Publish failed. Please save the post first and try again.')
+      return
+    }
     setMessage(`"${post.title}" is now live on the Records page!`)
   }
 
   const handleUnpublish = (post: Post) => {
-    unpublishPost(post.id)
+    const unpublished = unpublishPost(post.id)
+    if (!unpublished) {
+      setMessage('Unpublish failed. Please try again.')
+      return
+    }
     setAllPosts(getAllPosts())
     setMessage(`"${post.title}" has been removed from the Records page.`)
   }
 
-  const handlePublishPostDirect = () => {
-    if (!form.title || !form.excerpt || !form.content || !form.date || !form.readTime || !form.image) {
+  const handlePublishPostDirect = async () => {
+    await waitForPendingImageUpload()
+    const payload = getSanitizedFormPayload(formRef.current)
+
+    if (
+      !payload.title
+      || !payload.excerpt
+      || !stripHtml(payload.content)
+      || !payload.date
+      || !payload.readTime
+      || !payload.image
+    ) {
       setMessage('Please fill all fields before publishing the post.')
       return
     }
 
-    let postId = editingId
+    let postId: string | null = editingId
     if (!editingId) {
-      const createdPost = addCustomPost(form)
+      const createdPost = addCustomPost(payload)
+      if (!createdPost) {
+        setMessage('Publish failed. Image may be too large or browser storage is full.')
+        return
+      }
       postId = createdPost.id
     } else {
-      updatePost(editingId, form)
+      const updatedPost = updatePost(editingId, payload)
+      if (!updatedPost) {
+        setMessage('Publish failed. Could not update post before publishing.')
+        return
+      }
+      postId = updatedPost?.id ?? null
     }
 
     if (postId) {
-      publishPost(postId)
+      const published = publishPost(postId)
+      if (!published) {
+        setMessage('Publish failed. Please save the post first and try again.')
+        setAllPosts(getAllPosts())
+        return
+      }
       setMessage('Post published successfully and is now live!')
       setEditingId(null)
+      formRef.current = defaultForm
       setForm(defaultForm)
     }
 
@@ -270,7 +482,53 @@ function Dashboard() {
 
               <label>
                 Full Post Content
-                <textarea rows={8} value={form.content} onChange={onChange('content')} />
+                <div className={styles.editorTools}>
+                  <div className={styles.toolGroup}>
+                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('heading')} title="Heading" aria-label="Heading">
+                      H2
+                    </button>
+                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bold')} title="Bold" aria-label="Bold">
+                      <strong>B</strong>
+                    </button>
+                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('italic')} title="Italic" aria-label="Italic">
+                      <em>I</em>
+                    </button>
+                  </div>
+
+                  <div className={styles.toolDivider}></div>
+
+                  <div className={styles.toolGroup}>
+                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bullet')} title="Bullet list" aria-label="Bullet list">
+                      • List
+                    </button>
+                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('number')} title="Numbered list" aria-label="Numbered list">
+                      1. List
+                    </button>
+                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('quote')} title="Quote" aria-label="Quote">
+                      “ ”
+                    </button>
+                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('link')} title="Link" aria-label="Link">
+                      Link
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  style={{ display: 'none' }}
+                  value={form.content}
+                  readOnly
+                />
+                <div
+                  ref={contentInputRef}
+                  className={styles.richEditor}
+                  contentEditable
+                  role="textbox"
+                  aria-label="Full Post Content Editor"
+                  onInput={syncContentFromEditor}
+                  suppressContentEditableWarning
+                ></div>
+                <span className={styles.editorHint}>
+                  Tip: Select text and click a format button to apply styling.
+                </span>
               </label>
             </section>
 
@@ -306,13 +564,15 @@ function Dashboard() {
             </section>
 
             <div className={styles.actionsRow}>
-              <button type="submit">{editingId ? 'Update Post' : 'Save Post'}</button>
+              <button type="submit">
+                {isUploadingImage ? 'Uploading Image...' : editingId ? 'Update Post' : 'Save Post'}
+              </button>
               <button
                 type="button"
                 className={styles.publishActionBtn}
                 onClick={handlePublishPostDirect}
               >
-                Publish Post
+                {isUploadingImage ? 'Uploading Image...' : 'Publish Post'}
               </button>
               <button
                 type="button"

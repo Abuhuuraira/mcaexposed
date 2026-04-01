@@ -197,6 +197,140 @@
   filter: brightness(1.02);
 }
 
+.editorTools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 0.55rem;
+  border: 1px solid #2f2f2f;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #111111, #0b0b0b);
+}
+
+.toolGroup {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.toolDivider {
+  width: 1px;
+  height: 26px;
+  background: #2d2d2d;
+}
+
+.toolBtn {
+  min-width: 42px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #161616;
+  color: #d7ffd0;
+  border: 1px solid #343434;
+  border-radius: 8px;
+  padding: 0 0.62rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease;
+}
+
+.toolBtn:hover {
+  border-color: #39ff14;
+  background: #1d2a1a;
+  transform: translateY(-1px);
+}
+
+.toolBtn:focus-visible {
+  outline: none;
+  border-color: #65ff4a;
+  box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.2);
+}
+
+.editorHint {
+  font-size: 0.74rem;
+  color: #9b9b9b;
+}
+
+.richEditor {
+  min-height: 240px;
+  background: #090909;
+  border: 1px solid #303030;
+  color: #fff;
+  padding: 0.68rem 0.72rem;
+  border-radius: 8px;
+  outline: none;
+  font: inherit;
+  line-height: 1.7;
+}
+
+.richEditor:focus {
+  border-color: #39ff14;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.15);
+}
+
+.richEditor:empty::before {
+  content: 'Write your full post content here...';
+  color: #7f7f7f;
+}
+
+.richEditor h2,
+.richEditor strong {
+  color: #39ff14;
+}
+
+.richEditor p,
+.richEditor div,
+.richEditor li {
+  font-size: 18px;
+}
+
+.richEditor strong,
+.richEditor b {
+  font-size: 20px;
+}
+
+.richEditor h2 {
+  font-size: 30px;
+  line-height: 1.25;
+}
+
+.richEditor blockquote {
+  margin: 0.6rem 0;
+  border-left: 3px solid rgba(57, 255, 20, 0.7);
+  padding-left: 0.75rem;
+  color: #d7efd2;
+}
+
+.richEditor ul,
+.richEditor ol {
+  margin: 0.6rem 0;
+  padding-left: 1.3rem;
+}
+
+.richEditor a {
+  color: #8bff72;
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .editorTools {
+    gap: 0.45rem;
+    padding: 0.5rem;
+  }
+
+  .toolDivider {
+    display: none;
+  }
+
+  .toolBtn {
+    height: 32px;
+    min-width: 40px;
+  }
+}
+
 .actionsRow {
   display: flex;
   flex-wrap: wrap;
