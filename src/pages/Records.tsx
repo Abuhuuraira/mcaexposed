@@ -23,27 +23,27 @@ const queryToCategory: Record<string, FilterOption> = {
   other: 'Other',
 }
 
+const normalizeCategory = (value: string) => value.trim().toLowerCase()
+
 function Records() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [allPosts, setAllPosts] = useState(getAllPosts())
-  const [activeFilter, setActiveFilter] = useState<FilterOption>(() => {
-    const category = searchParams.get('category') ?? 'all'
-    return queryToCategory[category] ?? 'All Posts'
-  })
+  const [allPosts, setAllPosts] = useState(getAllPosts(true))
+  const activeFilter: FilterOption =
+    queryToCategory[searchParams.get('category') ?? 'all'] ?? 'All Posts'
 
   const handleFilterChange = (filter: FilterOption) => {
-    setActiveFilter(filter)
     setSearchParams({ category: categoryToQuery[filter] })
   }
 
   useEffect(() => {
-    const category = searchParams.get('category') ?? 'all'
-    const nextFilter = queryToCategory[category] ?? 'All Posts'
-    setActiveFilter(nextFilter)
+    setAllPosts(getAllPosts(true))
   }, [searchParams])
 
   useEffect(() => {
-    setAllPosts(getAllPosts(true))
+    const refreshPosts = () => setAllPosts(getAllPosts(true))
+    window.addEventListener('focus', refreshPosts)
+
+    return () => window.removeEventListener('focus', refreshPosts)
   }, [])
 
   const filteredPosts = useMemo(() => {
@@ -52,7 +52,8 @@ function Records() {
     }
 
     if (categoryFilters.includes(activeFilter as PostCategory)) {
-      return allPosts.filter((post) => post.category === activeFilter)
+      const normalizedFilter = normalizeCategory(activeFilter)
+      return allPosts.filter((post) => normalizeCategory(post.category) === normalizedFilter)
     }
 
     return allPosts
@@ -82,7 +83,7 @@ function Records() {
           <div className={styles.postsGrid}>
             {filteredPosts.map((post, index) => (
               <article
-                key={post.title}
+                key={post.id}
                 className={styles.postCard}
                 style={{ '--card-index': index } as CSSProperties}
               >

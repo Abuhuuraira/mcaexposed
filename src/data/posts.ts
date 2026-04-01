@@ -231,7 +231,8 @@ export const updatePost = (
   const updatedPost: Post = {
     ...existingPost,
     ...postInput,
-    slug: `${createSlug(postInput.title)}-${Date.now()}`,
+    id: existingPost.id,
+    slug: `${createSlug(postInput.title)}-${existingPost.id.replace('default-', '')}`,
     source: 'custom',
   }
 
@@ -250,7 +251,41 @@ export const deleteCustomPost = (id: string): boolean => {
 }
 
 export const getAllPosts = (onlyPublished = false): Post[] => {
-  const allPosts = [...getCustomPosts(), ...defaultPosts]
+  const customPosts = getCustomPosts()
+  const normalizeTitle = (value: string) => value.trim().toLowerCase()
+
+  const uniqueCustomPosts: Post[] = []
+  const seenCustomTitles = new Set<string>()
+
+  for (const post of customPosts) {
+    const normalizedTitle = normalizeTitle(post.title)
+    if (seenCustomTitles.has(normalizedTitle)) {
+      continue
+    }
+
+    seenCustomTitles.add(normalizedTitle)
+    uniqueCustomPosts.push(post)
+  }
+
+  const overriddenDefaultIds = new Set(
+    uniqueCustomPosts
+      .map((post) => post.id)
+      .filter((postId) => postId.startsWith('default-')),
+  )
+
+  const overriddenDefaultTitles = new Set(
+    uniqueCustomPosts
+      .filter((post) => post.source === 'custom')
+      .map((post) => normalizeTitle(post.title)),
+  )
+
+  const visibleDefaultPosts = defaultPosts.filter(
+    (post) =>
+      !overriddenDefaultIds.has(post.id)
+      && !overriddenDefaultTitles.has(normalizeTitle(post.title)),
+  )
+
+  const allPosts = [...uniqueCustomPosts, ...visibleDefaultPosts]
   if (onlyPublished) {
     return allPosts.filter((post) => post.published !== false)
   }
