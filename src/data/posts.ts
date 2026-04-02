@@ -329,5 +329,24 @@ export const unpublishPost = (id: string): Post | undefined => {
   return updated.find((post) => post.id === id)
 }
 
-export const findPostBySlug = (slug: string): Post | undefined =>
-  getAllPosts().find((post) => post.slug === slug || createSlug(post.title) === slug)
+const normalizeRouteValue = (value: string): string => {
+  try {
+    return decodeURIComponent(value).trim().toLowerCase()
+  } catch {
+    return value.trim().toLowerCase()
+  }
+}
+
+export const findPostBySlug = (slug: string): Post | undefined => {
+  const normalizedSlug = normalizeRouteValue(slug)
+
+  return getAllPosts().find((post) => {
+    const storedSlug = normalizeRouteValue(post.slug)
+    const generatedSlug = normalizeRouteValue(createSlug(post.title))
+    const postId = normalizeRouteValue(post.id)
+
+    return normalizedSlug === storedSlug
+      || normalizedSlug === generatedSlug
+      || normalizedSlug === postId
+  })
+}
