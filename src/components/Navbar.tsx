@@ -1,12 +1,37 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import styles from './Navbar.module.css'
+import { defaultPosts } from '../data/posts'
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearchResults, setShowSearchResults] = useState(false)
+  const navigate = useNavigate()
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev)
   const closeMenu = () => setIsMenuOpen(false)
+
+  const searchResults = searchQuery.trim()
+    ? defaultPosts.filter(
+        (post) =>
+          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.category.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : []
+
+  const handleSearchClick = (postSlug: string) => {
+    navigate(`/post/${postSlug}`)
+    setSearchQuery('')
+    setShowSearchResults(false)
+    closeMenu()
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+    setShowSearchResults(true)
+  }
 
   return (
     <nav className={styles.navbar}>
@@ -86,9 +111,34 @@ const Navbar = () => {
           >
             FAQ&apos;s
           </NavLink>
-          <a className={styles['nav-btn']} href="#" onClick={closeMenu}>
-            Search
-          </a>
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder="Search posts..."
+              value={searchQuery}
+              onChange={handleSearch}
+              onFocus={() => setShowSearchResults(true)}
+              className={styles.searchInput}
+            />
+            {showSearchResults && searchQuery.trim() && (
+              <div className={styles.searchResults}>
+                {searchResults.length > 0 ? (
+                  searchResults.map((post) => (
+                    <button
+                      key={post.id}
+                      className={styles.searchResultItem}
+                      onClick={() => handleSearchClick(post.slug)}
+                    >
+                      <div className={styles.resultTitle}>{post.title}</div>
+                      <div className={styles.resultCategory}>{post.category}</div>
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.noResults}>No posts found</div>
+                )}
+              </div>
+            )}
+          </div>
           
         </div>
 
