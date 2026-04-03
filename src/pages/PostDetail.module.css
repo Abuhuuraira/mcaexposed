@@ -80,9 +80,7 @@
 }
 
 .content h2,
-.content h3,
-.content strong,
-.content b {
+.content h3 {
   color: #39ff14;
 }
 
@@ -94,7 +92,9 @@
 
 .content strong,
 .content b {
-  font-size: 20px;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 700;
 }
 
 .content h2,
@@ -232,6 +232,6 @@
 
   .content strong,
   .content b {
-    font-size: 20px;
+    font-size: inherit;
   }
 }
