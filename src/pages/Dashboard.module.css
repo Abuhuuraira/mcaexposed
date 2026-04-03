@@ -277,7 +277,9 @@
 }
 
 .richEditor h2,
-.richEditor strong {
+.richEditor h3,
+.richEditor strong,
+.richEditor b {
   color: #39ff14;
 }
 

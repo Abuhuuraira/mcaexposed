@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import FooterSection from '../components/FooterSection'
@@ -79,6 +79,124 @@ const compressImageFile = async (file: File): Promise<string> => {
   return compressedDataUrl.length < originalDataUrl.length
     ? compressedDataUrl
     : originalDataUrl
+}
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
+const linkifyText = (value: string) =>
+  escapeHtml(value).replace(
+    /(https?:\/\/[^\s<]+)/gi,
+    (url) => `<a href="${url}" target="_blank" rel="noreferrer">${url}</a>`,
+  )
+
+const isLikelyHeading = (line: string, blockIndex: number) => {
+  if (/^#{1,3}\s+/.test(line)) {
+    return true
+  }
+
+  if (blockIndex !== 0) {
+    return false
+  }
+
+  const words = line.split(/\s+/).filter(Boolean).length
+  if (words < 3 || words > 18 || line.length > 120) {
+    return false
+  }
+
+  return !/[.!?]$/.test(line)
+}
+
+const smartFormatPlainText = (rawText: string): string => {
+  const normalized = rawText
+    .replace(/\r\n/g, '\n')
+    .replace(/\u00a0/g, ' ')
+    .trim()
+
+  if (!normalized) {
+    return ''
+  }
+
+  const blocks = normalized
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+
+  return blocks
+    .map((block, blockIndex) => {
+      const lines = block
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+
+      if (lines.length === 0) {
+        return ''
+      }
+
+      const markdownHeading = lines.length === 1 && /^#{1,3}\s+/.test(lines[0])
+      if (markdownHeading) {
+        return `<h2>${linkifyText(lines[0].replace(/^#{1,3}\s+/, ''))}</h2>`
+      }
+
+      if (lines.length === 1 && isLikelyHeading(lines[0], blockIndex)) {
+        return `<h2>${linkifyText(lines[0])}</h2>`
+      }
+
+      const isBulletList = lines.every((line) => /^[-*•]\s+/.test(line))
+      if (isBulletList) {
+        const items = lines
+          .map((line) => `<li>${linkifyText(line.replace(/^[-*•]\s+/, ''))}</li>`)
+          .join('')
+        return `<ul>${items}</ul>`
+      }
+
+      const isOrderedList = lines.every((line) => /^\d+\.\s+/.test(line))
+      if (isOrderedList) {
+        const items = lines
+          .map((line) => `<li>${linkifyText(line.replace(/^\d+\.\s+/, ''))}</li>`)
+          .join('')
+        return `<ol>${items}</ol>`
+      }
+
+      return `<p>${linkifyText(lines.join(' '))}</p>`
+    })
+    .filter(Boolean)
+    .join('')
+}
+
+const shouldSmartFormatEditorHtml = (rawHtml: string): boolean =>
+  !/<(h[1-6]|p|ul|ol|li|blockquote|a|strong|b|em|i)\b/i.test(rawHtml)
+
+const needsContentNormalization = (rawHtml: string): boolean =>
+  /<(div|span|font|section|article|header|footer|table|tbody|tr|td|th|figure|figcaption|h1|h4|h5|h6)\b/i.test(rawHtml)
+
+const normalizeContentForStorage = (rawContent: string): string => {
+  const trimmedContent = rawContent.trim()
+  if (!trimmedContent) {
+    return ''
+  }
+
+  const hasHtmlTag = /<\/?[a-z][\s\S]*>/i.test(trimmedContent)
+  if (!hasHtmlTag) {
+    return smartFormatPlainText(trimmedContent)
+  }
+
+  if (!needsContentNormalization(trimmedContent)) {
+    return trimmedContent
+  }
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(trimmedContent, 'text/html')
+  const plainText = (doc.body.textContent ?? '')
+    .replace(/\u00a0/g, ' ')
+    .trim()
+
+  return smartFormatPlainText(plainText)
 }
 
 function Dashboard() {
@@ -169,6 +287,40 @@ function Dashboard() {
     setForm(nextForm)
   }
 
+  const smartFormatEditorIfNeeded = () => {
+    const input = contentInputRef.current
+    if (!input) {
+      return
+    }
+
+    const plainText = input.innerText.replace(/\u00a0/g, ' ').trim()
+    if (!plainText || !shouldSmartFormatEditorHtml(input.innerHTML)) {
+      syncContentFromEditor()
+      return
+    }
+
+    const formattedHtml = smartFormatPlainText(plainText)
+    if (!formattedHtml) {
+      syncContentFromEditor()
+      return
+    }
+
+    input.innerHTML = formattedHtml
+    syncContentFromEditor()
+  }
+
+  const handleEditorPaste = (event: ClipboardEvent<HTMLDivElement>) => {
+    const pastedText = event.clipboardData.getData('text/plain')
+    if (!pastedText.trim()) {
+      return
+    }
+
+    event.preventDefault()
+    const formattedHtml = smartFormatPlainText(pastedText)
+    document.execCommand('insertHTML', false, formattedHtml || escapeHtml(pastedText))
+    syncContentFromEditor()
+  }
+
   const focusEditor = () => {
     contentInputRef.current?.focus()
   }
@@ -231,9 +383,11 @@ function Dashboard() {
   const getSanitizedFormPayload = (source: FormState): FormState => {
     const normalizedContentImage =
       source.contentImage && source.contentImage !== source.image ? source.contentImage : ''
+    const normalizedContent = normalizeContentForStorage(source.content)
 
     return {
       ...source,
+      content: normalizedContent,
       contentImage: normalizedContentImage,
     }
   }
@@ -524,10 +678,12 @@ function Dashboard() {
                   role="textbox"
                   aria-label="Full Post Content Editor"
                   onInput={syncContentFromEditor}
+                  onPaste={handleEditorPaste}
+                  onBlur={smartFormatEditorIfNeeded}
                   suppressContentEditableWarning
                 ></div>
                 <span className={styles.editorHint}>
-                  Tip: Select text and click a format button to apply styling.
+                  Tip: Paste text to auto-format title, paragraphs, lists, and links.
                 </span>
               </label>
             </section>
