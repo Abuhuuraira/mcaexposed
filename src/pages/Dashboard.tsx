@@ -206,7 +206,7 @@ function Dashboard() {
   const [savedPost, setSavedPost] = useState<Post | null>(null)
   const [newPostId, setNewPostId] = useState<string | null>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const [allPosts, setAllPosts] = useState<Post[]>(getAllPosts())
+  const [allPosts, setAllPosts] = useState<Post[]>([])
   const formRef = useRef(form)
   const pendingImageUploadRef = useRef<Promise<void> | null>(null)
   const contentInputRef = useRef<HTMLDivElement | null>(null)
@@ -264,6 +264,15 @@ function Dashboard() {
 
   const stripHtml = (value: string) =>
     value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+
+  const refreshPosts = async () => {
+    const posts = await getAllPosts()
+    setAllPosts(posts)
+  }
+
+  useEffect(() => {
+    void refreshPosts()
+  }, [])
 
   useEffect(() => {
     const input = contentInputRef.current
@@ -411,17 +420,17 @@ function Dashboard() {
     }
 
     if (editingId) {
-      const updatedPost = updatePost(editingId, payload)
+      const updatedPost = await updatePost(editingId, payload)
       if (!updatedPost) {
-        setMessage('Post update failed. Image may be too large or browser storage is full.')
+        setMessage('Post update failed. Please make sure the local posts server is running.')
         return
       }
       setMessage('Post updated successfully!')
       setEditingId(null)
     } else {
-      const createdPost = addCustomPost(payload)
+      const createdPost = await addCustomPost(payload)
       if (!createdPost) {
-        setMessage('Post save failed. Image may be too large or browser storage is full.')
+        setMessage('Post save failed. Please make sure the local posts server is running.')
         return
       }
       setSavedPost(createdPost)
@@ -434,7 +443,7 @@ function Dashboard() {
       }, 2000)
     }
 
-    setAllPosts(getAllPosts())
+    await refreshPosts()
     formRef.current = defaultForm
     setForm(defaultForm)
   }
@@ -463,7 +472,7 @@ function Dashboard() {
     setMessage('Editing selected post...')
   }
 
-  const removePost = (post: Post) => {
+  const removePost = async (post: Post) => {
     const shouldDelete = window.confirm(`Delete "${post.title}"? This action cannot be undone.`)
 
     if (!shouldDelete) {
@@ -475,12 +484,12 @@ function Dashboard() {
       return
     }
 
-    const deleted = deleteCustomPost(post.id)
+    const deleted = await deleteCustomPost(post.id)
     if (!deleted) {
       setMessage('Post delete failed. Please try again.')
       return
     }
-    setAllPosts(getAllPosts())
+    await refreshPosts()
     if (editingId === post.id) {
       setEditingId(null)
       formRef.current = defaultForm
@@ -496,9 +505,9 @@ function Dashboard() {
     setMessage('Edit canceled.')
   }
 
-  const handlePublish = (post: Post) => {
-    const published = publishPost(post.id)
-    setAllPosts(getAllPosts())
+  const handlePublish = async (post: Post) => {
+    const published = await publishPost(post.id)
+    await refreshPosts()
     if (!published) {
       setMessage('Publish failed. Please save the post first and try again.')
       return
@@ -506,13 +515,13 @@ function Dashboard() {
     setMessage(`"${post.title}" is now live on the Records page!`)
   }
 
-  const handleUnpublish = (post: Post) => {
-    const unpublished = unpublishPost(post.id)
+  const handleUnpublish = async (post: Post) => {
+    const unpublished = await unpublishPost(post.id)
     if (!unpublished) {
       setMessage('Unpublish failed. Please try again.')
       return
     }
-    setAllPosts(getAllPosts())
+    await refreshPosts()
     setMessage(`"${post.title}" has been removed from the Records page.`)
   }
 
@@ -534,14 +543,14 @@ function Dashboard() {
 
     let postId: string | null = editingId
     if (!editingId) {
-      const createdPost = addCustomPost(payload)
+      const createdPost = await addCustomPost(payload)
       if (!createdPost) {
-        setMessage('Publish failed. Image may be too large or browser storage is full.')
+        setMessage('Publish failed. Please make sure the local posts server is running.')
         return
       }
       postId = createdPost.id
     } else {
-      const updatedPost = updatePost(editingId, payload)
+      const updatedPost = await updatePost(editingId, payload)
       if (!updatedPost) {
         setMessage('Publish failed. Could not update post before publishing.')
         return
@@ -550,10 +559,10 @@ function Dashboard() {
     }
 
     if (postId) {
-      const published = publishPost(postId)
+      const published = await publishPost(postId)
       if (!published) {
         setMessage('Publish failed. Please save the post first and try again.')
-        setAllPosts(getAllPosts())
+        await refreshPosts()
         return
       }
       setMessage('Post published successfully and is now live!')
@@ -562,7 +571,7 @@ function Dashboard() {
       setForm(defaultForm)
     }
 
-    setAllPosts(getAllPosts())
+    await refreshPosts()
   }
 
   return (

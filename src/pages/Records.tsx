@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import FooterSection from '../components/FooterSection'
-import { getAllPosts, type PostCategory } from '../data/posts'
+import { getAllPosts, type Post, type PostCategory } from '../data/posts'
 import styles from './Records.module.css'
 
 const filters = ['All Posts', 'The Fraud Files', 'MCA Awareness', 'Other'] as const
@@ -27,23 +27,30 @@ const normalizeCategory = (value: string) => value.trim().toLowerCase()
 
 function Records() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [allPosts, setAllPosts] = useState(getAllPosts(true))
+  const [allPosts, setAllPosts] = useState<Post[]>([])
   const activeFilter: FilterOption =
     queryToCategory[searchParams.get('category') ?? 'all'] ?? 'All Posts'
+
+  const refreshPosts = async () => {
+    const posts = await getAllPosts(true)
+    setAllPosts(posts)
+  }
 
   const handleFilterChange = (filter: FilterOption) => {
     setSearchParams({ category: categoryToQuery[filter] })
   }
 
   useEffect(() => {
-    setAllPosts(getAllPosts(true))
+    void refreshPosts()
   }, [searchParams])
 
   useEffect(() => {
-    const refreshPosts = () => setAllPosts(getAllPosts(true))
-    window.addEventListener('focus', refreshPosts)
+    const onFocus = () => {
+      void refreshPosts()
+    }
+    window.addEventListener('focus', onFocus)
 
-    return () => window.removeEventListener('focus', refreshPosts)
+    return () => window.removeEventListener('focus', onFocus)
   }, [])
 
   const filteredPosts = useMemo(() => {

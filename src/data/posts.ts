@@ -15,7 +15,7 @@ export type Post = {
   published?: boolean
 }
 
-const STORAGE_KEY = 'mca_custom_posts'
+const API_BASE = '/api/custom-posts'
 
 export const defaultPosts: Post[] = [
   {
@@ -133,41 +133,31 @@ export const createSlug = (title: string) =>
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
 
-export const getCustomPosts = (): Post[] => {
-  if (typeof window === 'undefined') {
-    return []
-  }
-
-  const raw = window.localStorage.getItem(STORAGE_KEY)
-  if (!raw) {
-    return []
-  }
-
+const fetchJson = async <T>(input: RequestInfo | URL, init?: RequestInit): Promise<T | undefined> => {
   try {
-    const parsed = JSON.parse(raw) as Post[]
-    return Array.isArray(parsed) ? parsed : []
+    const response = await fetch(input, init)
+    if (!response.ok) {
+      return undefined
+    }
+    if (response.status === 204) {
+      return undefined
+    }
+
+    const data = await response.json()
+    return data as T
   } catch {
-    return []
+    return undefined
   }
 }
 
-export const saveCustomPosts = (posts: Post[]): boolean => {
-  if (typeof window === 'undefined') {
-    return false
-  }
-
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
-    return true
-  } catch {
-    return false
-  }
+export const getCustomPosts = async (): Promise<Post[]> => {
+  const posts = await fetchJson<Post[]>(API_BASE)
+  return Array.isArray(posts) ? posts : []
 }
 
 export const addCustomPost = (
   postInput: Omit<Post, 'id' | 'slug' | 'source'>,
-): Post | undefined => {
-  const current = getCustomPosts()
+): Promise<Post | undefined> => {
   const post: Post = {
     ...postInput,
     id: `custom-${Date.now()}`,
@@ -175,52 +165,42 @@ export const addCustomPost = (
     source: 'custom',
   }
 
-  const updated = [post, ...current]
-  if (!saveCustomPosts(updated)) {
-    return undefined
-  }
-  return post
+  return fetchJson<Post>(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(post),
+  })
 }
 
 export const updateCustomPost = (
   id: string,
   postInput: Omit<Post, 'id' | 'slug' | 'source'>,
-): Post | undefined => {
-  const current = getCustomPosts()
-  const existing = current.find((post) => post.id === id)
-
-  if (!existing) {
-    return undefined
-  }
-
-  const updatedPost: Post = {
-    ...existing,
-    ...postInput,
-    slug: createSlug(postInput.title),
-  }
-
-  const updated = current.map((post) => (post.id === id ? updatedPost : post))
-  if (!saveCustomPosts(updated)) {
-    return undefined
-  }
-  return updatedPost
+): Promise<Post | undefined> => {
+  return fetchJson<Post>(`${API_BASE}/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...postInput,
+      slug: createSlug(postInput.title),
+    }),
+  })
 }
 
-export const updatePost = (
+export const updatePost = async (
   id: string,
   postInput: Omit<Post, 'id' | 'slug' | 'source'>,
-): Post | undefined => {
+): Promise<Post | undefined> => {
   // First check if it's a custom post
-  const customPosts = getCustomPosts()
+  const customPosts = await getCustomPosts()
   const existingCustom = customPosts.find((post) => post.id === id)
 
   if (existingCustom) {
     // It's already a custom post, update it normally
-    return updateCustomPost(id, postInput)
+    return await updateCustomPost(id, postInput)
   }
 
   // It's a default post or doesn't exist - check in all posts
-  const allPosts = getAllPosts()
+  const allPosts = await getAllPosts()
   const existingPost = allPosts.find((post) => post.id === id)
 
   if (!existingPost) {
@@ -237,21 +217,26 @@ export const updatePost = (
   }
 
   // Add to custom posts (will appear first due to getAllPosts order)
-  const updated = [updatedPost, ...customPosts]
-  if (!saveCustomPosts(updated)) {
-    return undefined
+  return fetchJson<Post>(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updatedPost),
+  })
+}
+
+export const deleteCustomPost = async (id: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE}/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    })
+    return response.ok
+  } catch {
+    return false
   }
-  return updatedPost
 }
 
-export const deleteCustomPost = (id: string): boolean => {
-  const current = getCustomPosts()
-  const updated = current.filter((post) => post.id !== id)
-  return saveCustomPosts(updated)
-}
-
-export const getAllPosts = (onlyPublished = false): Post[] => {
-  const customPosts = getCustomPosts()
+export const getAllPosts = async (onlyPublished = false): Promise<Post[]> => {
+  const customPosts = await getCustomPosts()
   const normalizeTitle = (value: string) => value.trim().toLowerCase()
 
   const uniqueCustomPosts: Post[] = []
@@ -295,38 +280,20 @@ export const getAllPosts = (onlyPublished = false): Post[] => {
   return allPosts
 }
 
-export const publishPost = (id: string): Post | undefined => {
-  const current = getCustomPosts()
-  const existing = current.find((post) => post.id === id)
-
-  if (!existing) {
-    return undefined
-  }
-
-  const updated = current.map((post) =>
-    post.id === id ? { ...post, published: true } : post,
-  )
-  if (!saveCustomPosts(updated)) {
-    return undefined
-  }
-  return updated.find((post) => post.id === id)
+export const publishPost = async (id: string): Promise<Post | undefined> => {
+  return fetchJson<Post>(`${API_BASE}/${encodeURIComponent(id)}/published`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ published: true }),
+  })
 }
 
-export const unpublishPost = (id: string): Post | undefined => {
-  const current = getCustomPosts()
-  const existing = current.find((post) => post.id === id)
-
-  if (!existing) {
-    return undefined
-  }
-
-  const updated = current.map((post) =>
-    post.id === id ? { ...post, published: false } : post,
-  )
-  if (!saveCustomPosts(updated)) {
-    return undefined
-  }
-  return updated.find((post) => post.id === id)
+export const unpublishPost = async (id: string): Promise<Post | undefined> => {
+  return fetchJson<Post>(`${API_BASE}/${encodeURIComponent(id)}/published`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ published: false }),
+  })
 }
 
 const normalizeRouteValue = (value: string): string => {
@@ -337,10 +304,12 @@ const normalizeRouteValue = (value: string): string => {
   }
 }
 
-export const findPostBySlug = (slug: string): Post | undefined => {
+export const findPostBySlug = async (slug: string): Promise<Post | undefined> => {
   const normalizedSlug = normalizeRouteValue(slug)
 
-  return getAllPosts().find((post) => {
+  const allPosts = await getAllPosts()
+
+  return allPosts.find((post) => {
     const storedSlug = normalizeRouteValue(post.slug)
     const generatedSlug = normalizeRouteValue(createSlug(post.title))
     const postId = normalizeRouteValue(post.id)

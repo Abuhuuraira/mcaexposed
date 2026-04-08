@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import FooterSection from '../components/FooterSection'
-import { findPostBySlug } from '../data/posts'
+import { findPostBySlug, type Post } from '../data/posts'
 import styles from './PostDetail.module.css'
 
 const allowedTags = new Set(['A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I', 'H2', 'H3', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'DIV'])
@@ -202,13 +202,34 @@ const renderPostContent = (rawContent: string) => {
 
 function PostDetail() {
   const { slug } = useParams()
-  const post = slug ? findPostBySlug(slug) : undefined
+  const [post, setPost] = useState<Post | undefined>(undefined)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const loadPost = async () => {
+      if (!slug) {
+        setPost(undefined)
+        setIsLoading(false)
+        return
+      }
+
+      const foundPost = await findPostBySlug(slug)
+      setPost(foundPost)
+      setIsLoading(false)
+    }
+
+    void loadPost()
+  }, [slug])
 
   return (
     <div className={styles.pageWrap}>
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
-          {!post ? (
+          {isLoading ? (
+            <div className={styles.postCard}>
+              <h1>Loading post...</h1>
+            </div>
+          ) : !post ? (
             <div className={styles.postCard}>
               <h1>Post not found</h1>
               <p>The post you requested does not exist.</p>
