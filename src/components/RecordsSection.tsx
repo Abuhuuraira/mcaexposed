@@ -1,27 +1,20 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import styles from './RecordsSection.module.css'
-
-const records = [
-  {
-    img: '/images/record1.png',
-    date: 'Jun 1, 2025',
-    title: 'A Fraudulent Brokerage: EZ Advance LLC, Benjamin Kandhorov,...',
-    desc: 'The following summarizes allegations contained in a federal lawsuit. The defendants dispute...',
-  },
-  {
-    img: '/images/record2.png',
-    date: 'Jun 1, 2025',
-    title: 'SuperFast Capital Inc. & Alternative Capital Group: The Customer...',
-    desc: 'The following summarizes allegations contained in a federal lawsuit. The defendants dispute...',
-  },
-  {
-    img: '/images/record3.png',
-    date: 'May 31, 2025',
-    title: 'Top Choice Financial: The Servicer in the Pipeline',
-    desc: 'The following summarizes allegations contained in a federal lawsuit. The defendants dispute...',
-  },
-]
+import { getAllPosts, type Post } from '../data/posts'
 
 function RecordsSection() {
+  const [fraudPosts, setFraudPosts] = useState<Post[]>([])
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const posts = await getAllPosts(true) // only published
+      const filtered = posts.filter(post => post.category === 'The Fraud Files').slice(0, 3)
+      setFraudPosts(filtered)
+    }
+    fetchPosts()
+  }, [])
+
   return (
     <section className={styles.recordsSection}>
       <h1 className={styles.recordsTitle}>The Records</h1>
@@ -38,16 +31,16 @@ function RecordsSection() {
       <h2 className={styles.fraudTitle}>The Fraud Files</h2>
 
       <div className={styles.recordsGrid}>
-        {records.map((item, index) => (
-          <div className={styles.recordCard} key={index}>
-            <img src={item.img} alt="record" />
+        {fraudPosts.map((post, index) => (
+          <Link to={`/post/${post.slug}`} key={post.id} className={styles.recordCard}>
+            <img src={post.image} alt="record" />
 
             <div className={styles.cardContent}>
-              <span className={styles.date}>{item.date}</span>
-              <h3>{item.title}</h3>
-              <p>{item.desc}</p>
+              <span className={styles.date}>{post.date}</span>
+              <h3>{post.title}</h3>
+              <p>{post.excerpt}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>

@@ -1,48 +1,41 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import styles from './AwarenessSection.module.css'
-
-const awarenessData = [
-  {
-    title: 'WHAT TO DO AS A VICTIM',
-    date: 'Aug 8, 2025',
-    heading: 'What To Do if I am a Victim of Merchant Cash Advance (MCA) loan...',
-    desc: 'If you just found out you were scammed by a merchant cash advance (MCA) loan company,...',
-  },
-  {
-    title: 'PROTECT YOUR BUSINESS',
-    date: 'Aug 1, 2025',
-    heading: 'Protecting Your Business from Merchant Cash Advance Scams',
-    desc: 'Understanding Merchant Cash Advances Before diving into scams, it is essential to...',
-  },
-  {
-    title: 'FILE A REPORT',
-    date: 'Aug 1, 2025',
-    heading: 'Report MCA Fraud',
-    desc: 'Most small business owners who get trapped in a merchant cash advance scam don’t know wher...',
-  },
-]
+import { getAllPosts, type Post } from '../data/posts'
 
 function AwarenessSection() {
+  const [awarenessPosts, setAwarenessPosts] = useState<Post[]>([])
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const posts = await getAllPosts(true) // only published
+      const filtered = posts.filter(post => post.category === 'MCA Awareness').slice(0, 3)
+      setAwarenessPosts(filtered)
+    }
+    fetchPosts()
+  }, [])
+
   return (
     <section className={styles.awarenessSection}>
       <h1 className={styles.awarenessTitle}>MCA Awareness</h1>
 
       <div className={styles.awarenessGrid}>
-        {awarenessData.map((item, index) => (
-          <div className={styles.awarenessCard} key={index}>
+        {awarenessPosts.map((post, index) => (
+          <Link to={`/post/${post.slug}`} key={post.id} className={styles.awarenessCard}>
             <div className={styles.topRed}>
               MCA <br /> AWARENESS
             </div>
 
             <div className={styles.greenLine}></div>
 
-            <div className={styles.bigText}>{item.title}</div>
+            <div className={styles.bigText}>MCA AWARENESS</div>
 
             <div className={styles.cardBottom}>
-              <span className={styles.date}>{item.date}</span>
-              <h3>{item.heading}</h3>
-              <p>{item.desc}</p>
+              <span className={styles.date}>{post.date}</span>
+              <h3>{post.title}</h3>
+              <p>{post.excerpt}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
