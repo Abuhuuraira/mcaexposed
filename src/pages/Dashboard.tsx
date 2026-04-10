@@ -206,6 +206,9 @@ function Dashboard() {
   const [savedPost, setSavedPost] = useState<Post | null>(null)
   const [newPostId, setNewPostId] = useState<string | null>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [inlineFileTitle, setInlineFileTitle] = useState('')
+  const [inlineFileName, setInlineFileName] = useState('')
+  const [inlineFileData, setInlineFileData] = useState('')
   const [allPosts, setAllPosts] = useState<Post[]>([])
   const formRef = useRef(form)
   const pendingImageUploadRef = useRef<Promise<void> | null>(null)
@@ -261,6 +264,46 @@ function Dashboard() {
         pendingImageUploadRef.current = null
       }
     }
+
+  const onInlineFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0]
+    if (!selectedFile) {
+      return
+    }
+
+    setIsUploadingImage(true)
+
+    const uploadTask = (async () => {
+      try {
+        const dataUrl = await readFileAsDataUrl(selectedFile)
+        setInlineFileName(selectedFile.name)
+        setInlineFileData(dataUrl)
+        if (!inlineFileTitle.trim()) {
+          setInlineFileTitle(selectedFile.name)
+        }
+        setMessage(`File "${selectedFile.name}" is ready to insert.`)
+      } catch {
+        setMessage('File upload failed. Please try another file.')
+      } finally {
+        setIsUploadingImage(false)
+        event.target.value = ''
+      }
+    })()
+
+    pendingImageUploadRef.current = uploadTask
+    await uploadTask
+
+    if (pendingImageUploadRef.current === uploadTask) {
+      pendingImageUploadRef.current = null
+    }
+  }
+
+  const clearInlineFile = () => {
+    setInlineFileName('')
+    setInlineFileData('')
+    setInlineFileTitle('')
+    setMessage('File selection cleared.')
+  }
 
   const stripHtml = (value: string) =>
     value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
@@ -340,6 +383,29 @@ function Dashboard() {
     syncContentFromEditor()
   }
 
+  const insertInlineDownloadLink = () => {
+    if (!inlineFileData || !inlineFileName) {
+      setMessage('Upload a file first, then insert it into content.')
+      return
+    }
+
+    const title = inlineFileTitle.trim() || inlineFileName
+    const encodedTitle = escapeHtml(title)
+    const encodedFileName = escapeHtml(inlineFileName)
+    const safeHref = inlineFileData.replace(/"/g, '&quot;')
+
+    const linkHtml = `<p><a href="${safeHref}" download="${encodedFileName}" target="_blank" rel="noreferrer">${encodedTitle} ↓</a></p>`
+
+    focusEditor()
+    document.execCommand('insertHTML', false, linkHtml)
+    syncContentFromEditor()
+
+    setInlineFileName('')
+    setInlineFileData('')
+    setInlineFileTitle('')
+    setMessage('Download link inserted into post content.')
+  }
+
   const handleFormatContent = (action: 'bold' | 'italic' | 'heading' | 'quote' | 'bullet' | 'number' | 'link') => {
     if (action === 'bold') {
       runCommand('bold')
@@ -390,14 +456,17 @@ function Dashboard() {
   }
 
   const getSanitizedFormPayload = (source: FormState): FormState => {
-    const normalizedContentImage =
-      source.contentImage && source.contentImage !== source.image ? source.contentImage : ''
     const normalizedContent = normalizeContentForStorage(source.content)
 
     return {
-      ...source,
+      title: source.title,
+      excerpt: source.excerpt,
       content: normalizedContent,
-      contentImage: normalizedContentImage,
+      category: source.category,
+      date: source.date,
+      readTime: source.readTime,
+      image: source.image,
+      contentImage: source.contentImage,
     }
   }
 
@@ -452,6 +521,9 @@ function Dashboard() {
     setEditingId(null)
     formRef.current = defaultForm
     setForm(defaultForm)
+    setInlineFileTitle('')
+    setInlineFileName('')
+    setInlineFileData('')
     setMessage('Ready to add a new post.')
   }
 
@@ -469,6 +541,9 @@ function Dashboard() {
     }
     formRef.current = nextForm
     setForm(nextForm)
+    setInlineFileTitle('')
+    setInlineFileName('')
+    setInlineFileData('')
     setMessage('Editing selected post...')
   }
 
@@ -502,6 +577,9 @@ function Dashboard() {
     setEditingId(null)
     formRef.current = defaultForm
     setForm(defaultForm)
+    setInlineFileTitle('')
+    setInlineFileName('')
+    setInlineFileData('')
     setMessage('Edit canceled.')
   }
 
@@ -569,6 +647,9 @@ function Dashboard() {
       setEditingId(null)
       formRef.current = defaultForm
       setForm(defaultForm)
+      setInlineFileTitle('')
+      setInlineFileName('')
+      setInlineFileData('')
     }
 
     await refreshPosts()
@@ -694,6 +775,42 @@ function Dashboard() {
                 <span className={styles.editorHint}>
                   Tip: Paste text to auto-format title, paragraphs, lists, and links.
                 </span>
+                <div className={styles.inlineFileTools}>
+                  <h3>Insert Download File In Content</h3>
+                  <div className={styles.inlineFileRow}>
+                    <input
+                      type="file"
+                      onChange={onInlineFileChange}
+                      aria-label="Choose file to insert in content"
+                    />
+                    <input
+                      type="text"
+                      value={inlineFileTitle}
+                      onChange={(event) => setInlineFileTitle(event.target.value)}
+                      placeholder="Download title shown in post"
+                      aria-label="Download title"
+                    />
+                    <button
+                      type="button"
+                      className={styles.insertFileBtn}
+                      onClick={insertInlineDownloadLink}
+                    >
+                      Insert File Link
+                    </button>
+                  </div>
+                  {inlineFileName && (
+                    <div className={styles.filePreview}>
+                      <p className={styles.fileName}>📄 {inlineFileName}</p>
+                      <button
+                        type="button"
+                        className={styles.clearFileBtn}
+                        onClick={clearInlineFile}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+                </div>
               </label>
             </section>
 

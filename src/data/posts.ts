@@ -11,6 +11,7 @@ export type Post = {
   readTime: string
   image: string
   contentImage?: string
+  downloadFile?: { name: string; data: string }
   source: 'default' | 'custom'
   published?: boolean
 }

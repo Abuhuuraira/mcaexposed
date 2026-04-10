@@ -31,7 +31,10 @@ const sanitizeHtml = (rawHtml: string): string => {
 
         if (element.tagName === 'A') {
           const href = element.getAttribute('href') ?? ''
-          if (!/^https?:\/\//i.test(href)) {
+          const isHttpLink = /^https?:\/\//i.test(href)
+          const isDownloadDataLink = /^data:application\/[a-z0-9.+-]+;base64,/i.test(href)
+
+          if (!isHttpLink && !isDownloadDataLink) {
             element.removeAttribute('href')
           }
           element.setAttribute('target', '_blank')
@@ -39,7 +42,7 @@ const sanitizeHtml = (rawHtml: string): string => {
         }
 
         const allowedAttrs = element.tagName === 'A'
-          ? ['href', 'target', 'rel']
+          ? ['href', 'target', 'rel', 'download']
           : []
         Array.from(element.attributes).forEach((attr) => {
           if (!allowedAttrs.includes(attr.name)) {
@@ -248,8 +251,21 @@ function PostDetail() {
 
               <p className={styles.excerpt}>{post.excerpt}</p>
               {renderPostContent(post.content)}
-              {post.contentImage && post.contentImage !== post.image && (
+              {post.contentImage && (
                 <img src={post.contentImage} alt={`${post.title} content`} className={styles.contentImage} />
+              )}
+
+              {post.downloadFile && (
+                <div className={styles.downloadSection}>
+                  <a
+                    href={post.downloadFile.data}
+                    download={post.downloadFile.name}
+                    className={styles.downloadLink}
+                  >
+                    <span className={styles.fileName}>📄 {post.downloadFile.name}</span>
+                    <span className={styles.downloadArrow}>↓</span>
+                  </a>
+                </div>
               )}
 
               <Link to="/records" className={styles.backLink}>
