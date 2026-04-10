@@ -1,0 +1,14 @@
+[
+  {
+    "email": "test@example.com",
+    "consent": true,
+    "subscribedAt": "2026-04-10T08:10:57.839Z",
+    "id": "1775808657840"
+  },
+  {
+    "email": "abuhurairabutt103@gmail.com",
+    "consent": true,
+    "subscribedAt": "2026-04-10T08:12:14.873Z",
+    "id": "1775808734873"
+  }
+]

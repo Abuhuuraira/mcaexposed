@@ -210,6 +210,7 @@ function Dashboard() {
   const [inlineFileName, setInlineFileName] = useState('')
   const [inlineFileData, setInlineFileData] = useState('')
   const [allPosts, setAllPosts] = useState<Post[]>([])
+  const [subscribers, setSubscribers] = useState<any[]>([])
   const formRef = useRef(form)
   const pendingImageUploadRef = useRef<Promise<void> | null>(null)
   const contentInputRef = useRef<HTMLDivElement | null>(null)
@@ -313,8 +314,21 @@ function Dashboard() {
     setAllPosts(posts)
   }
 
+  const refreshSubscribers = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/newsletter/subscribers')
+      if (response.ok) {
+        const subscribersData = await response.json()
+        setSubscribers(subscribersData)
+      }
+    } catch (error) {
+      console.error('Failed to fetch subscribers:', error)
+    }
+  }
+
   useEffect(() => {
     void refreshPosts()
+    void refreshSubscribers()
   }, [])
 
   useEffect(() => {
@@ -961,6 +975,41 @@ function Dashboard() {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <div className={styles.divider}></div>
+
+      <section className={styles.heroSection}>
+        <div className={styles.contentContainer}>
+          <div className={styles.dashboardHeader}>
+            <h2>Newsletter Subscribers</h2>
+            <p>Manage your newsletter subscribers and view subscription details.</p>
+            <div className={styles.statsRow}>
+              <div className={styles.statChip}>
+                <span className={styles.statLabel}>Total Subscribers</span>
+                <strong>{subscribers.length}</strong>
+              </div>
+            </div>
+          </div>
+
+          {subscribers.length === 0 ? (
+            <p className={styles.emptyText}>No subscribers yet.</p>
+          ) : (
+            <div className={styles.savedList}>
+              {subscribers.map((subscriber) => (
+                <article key={subscriber.id} className={styles.savedItem}>
+                  <div className={styles.savedContent}>
+                    <h3>{subscriber.email}</h3>
+                    <div className={styles.savedMeta}>
+                      <span>Subscribed: {new Date(subscriber.subscribedAt).toLocaleDateString()}</span>
+                      <span>Consent: {subscriber.consent ? 'Given' : 'Not given'}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           )}
         </div>
