@@ -224,6 +224,12 @@ function PostDetail() {
     void loadPost()
   }, [slug])
 
+  useEffect(() => {
+    if (post) {
+      document.title = post.title
+    }
+  }, [post])
+
   return (
     <div className={styles.pageWrap}>
       <section className={styles.heroSection}>
