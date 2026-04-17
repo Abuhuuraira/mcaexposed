@@ -2,6 +2,12 @@
 
 A React + TypeScript application built with Vite for MCA students — providing resources, community, and academic support.
 
+## About
+
+MCA Exposed is a platform created by a small business owner who uncovered a web of merchant cash advance (MCA) fraud built on fake identities, forged contracts, and unauthorized liens. This site serves as a resource to inform and empower small businesses against fraud in the MCA industry, sharing stories, documentation, and legal actions taken to fight back against these predatory practices.
+
+**Developed by:** Abuhuraira
+
 ## Tech Stack
 
 - **React 18** — UI library
