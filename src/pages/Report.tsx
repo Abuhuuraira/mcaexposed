@@ -1,7 +1,12 @@
+import { useEffect } from 'react'
 import FooterSection from '../components/FooterSection'
 import styles from './Report.module.css'
 
 function Report() {
+  useEffect(() => {
+    document.title = 'Submit MCA Fraud Report | MCA Exposed'
+  }, [])
+  
   return (
     <div className={styles.pageWrap}>
       <section className={styles.heroSection}>

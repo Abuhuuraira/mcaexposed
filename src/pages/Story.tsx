@@ -1,7 +1,12 @@
+import { useEffect } from 'react'
 import FooterSection from '../components/FooterSection'
 import styles from './Story.module.css'
 
 function Story() {
+  useEffect(() => {
+    document.title = 'The Story | MCA Exposed'
+  }, [])
+
   return (
     <div className={styles.pageWrap}>
       <section className={styles.heroSection}>

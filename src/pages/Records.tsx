@@ -31,6 +31,14 @@ function Records() {
   const activeFilter: FilterOption =
     queryToCategory[searchParams.get('category') ?? 'all'] ?? 'All Posts'
 
+  useEffect(() => {
+    if (activeFilter === 'All Posts') {
+      document.title = 'MCA Records | Mca Exposed'
+    } else {
+      document.title = `${activeFilter} | Mca Exposed`
+    }
+  }, [activeFilter])
+
   const refreshPosts = async () => {
     const posts = await getAllPosts(true)
     setAllPosts(posts)

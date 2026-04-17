@@ -1,4 +1,4 @@
-import { type CSSProperties } from 'react'
+import { useEffect, type CSSProperties } from 'react'
 import FooterSection from '../components/FooterSection'
 import styles from './Courts.module.css'
 
@@ -32,6 +32,10 @@ const cases = [
 ]
 
 function Courts() {
+  useEffect(() => {
+    document.title = 'The Courts | Mca Exposed'
+  }, [])
+
   return (
     <div className={styles.pageWrap}>
       <section className={styles.hero}>
