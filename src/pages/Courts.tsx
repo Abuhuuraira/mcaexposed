@@ -1,5 +1,6 @@
 import { useEffect, type CSSProperties } from 'react'
 import FooterSection from '../components/FooterSection'
+import { SEO } from '../components/SEO'
 import styles from './Courts.module.css'
 
 const cases = [
@@ -38,6 +39,7 @@ function Courts() {
 
   return (
     <div className={styles.pageWrap}>
+      <SEO path="/courts" />
       <section className={styles.hero}>
         <img
           className={styles.heroImage}

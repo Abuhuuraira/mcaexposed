@@ -11,6 +11,7 @@ const projectRoot = path.resolve(__dirname, '..')
 const dataDir = path.join(projectRoot, 'data')
 const postsFile = path.join(dataDir, 'custom-posts.json')
 const newsletterFile = path.join(dataDir, 'newsletter-subscribers.json')
+const pageSEOFile = path.join(dataDir, 'page-seo.json')
 
 // Email configuration
 const emailTransporter = nodemailer.createTransport({
@@ -42,6 +43,12 @@ const ensureStorageFile = async () => {
     await fs.access(newsletterFile)
   } catch {
     await fs.writeFile(newsletterFile, '[]\n', 'utf8')
+  }
+
+  try {
+    await fs.access(pageSEOFile)
+  } catch {
+    await fs.writeFile(pageSEOFile, '[]\n', 'utf8')
   }
 }
 
@@ -77,6 +84,23 @@ const readNewsletterSubscribers = async () => {
 const writeNewsletterSubscribers = async (subscribers) => {
   await ensureStorageFile()
   await fs.writeFile(newsletterFile, `${JSON.stringify(subscribers, null, 2)}\n`, 'utf8')
+}
+
+const readPageSEO = async () => {
+  await ensureStorageFile()
+  const raw = await fs.readFile(pageSEOFile, 'utf8')
+
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+const writePageSEO = async (seo) => {
+  await ensureStorageFile()
+  await fs.writeFile(pageSEOFile, `${JSON.stringify(seo, null, 2)}\n`, 'utf8')
 }
 
 app.get('/api/custom-posts', async (_req, res) => {
@@ -157,6 +181,35 @@ app.delete('/api/custom-posts/:id', async (req, res) => {
 
   await writePosts(nextPosts)
   res.status(204).send()
+})
+
+app.get('/api/page-seo', async (_req, res) => {
+  const seo = await readPageSEO()
+  res.json(seo)
+})
+
+app.put('/api/page-seo/:id', async (req, res) => {
+  const seo = await readPageSEO()
+  const { id } = req.params
+  const payload = req.body
+  const index = seo.findIndex((item) => item.id === id)
+
+  if (index < 0) {
+    // If not found, add new
+    seo.push({
+      ...payload,
+      id,
+    })
+  } else {
+    seo[index] = {
+      ...seo[index],
+      ...payload,
+      id,
+    }
+  }
+
+  await writePageSEO(seo)
+  res.json(seo[index >= 0 ? index : seo.length - 1])
 })
 
 app.post('/api/newsletter/subscribe', async (req, res) => {

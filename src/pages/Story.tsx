@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import FooterSection from '../components/FooterSection'
+import { SEO } from '../components/SEO'
 import styles from './Story.module.css'
 
 function Story() {
@@ -9,6 +10,7 @@ function Story() {
 
   return (
     <div className={styles.pageWrap}>
+      <SEO path="/story" />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>The Story Behind MCA Exposed</h1>

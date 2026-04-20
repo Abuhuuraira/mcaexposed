@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import FooterSection from '../components/FooterSection'
+import { SEO } from '../components/SEO'
 import styles from './Report.module.css'
 
 function Report() {
@@ -9,6 +10,7 @@ function Report() {
   
   return (
     <div className={styles.pageWrap}>
+      <SEO path="/report" />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>Make a Report</h1>

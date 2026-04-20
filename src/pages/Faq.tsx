@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import FooterSection from '../components/FooterSection'
+import { SEO } from '../components/SEO'
 import styles from './Faq.module.css'
 
 const faqData = [
@@ -210,6 +211,7 @@ function Faq() {
 
   return (
     <div className={styles.pageWrap}>
+      <SEO path="/faq" />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>MCA Frequently Asked Questions - Legal Guide</h1>

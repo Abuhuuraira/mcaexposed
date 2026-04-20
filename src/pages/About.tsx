@@ -1,8 +1,10 @@
 import styles from './About.module.css'
+import { SEO } from '../components/SEO'
 
 function About() {
   return (
     <div className={styles.container}>
+      <SEO path="/about" />
       <h1 className={styles.title}>About MCA Expose</h1>
       <p className={styles.description}>
         MCA Expose is a dedicated platform built for Master of Computer Applications

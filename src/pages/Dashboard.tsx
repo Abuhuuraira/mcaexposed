@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ClipboardEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import FooterSection from '../components/FooterSection'
@@ -12,6 +12,7 @@ import {
   type PostCategory,
   updatePost,
 } from '../data/posts'
+import { getAllPageSEO, updatePageSEO, type PageSEO, defaultPageSEO } from '../data/page-seo'
 import styles from './Dashboard.module.css'
 
 type FormState = {
@@ -203,7 +204,6 @@ function Dashboard() {
   const [form, setForm] = useState<FormState>(defaultForm)
   const [message, setMessage] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [savedPost, setSavedPost] = useState<Post | null>(null)
   const [newPostId, setNewPostId] = useState<string | null>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [inlineFileTitle, setInlineFileTitle] = useState('')
@@ -211,6 +211,9 @@ function Dashboard() {
   const [inlineFileData, setInlineFileData] = useState('')
   const [allPosts, setAllPosts] = useState<Post[]>([])
   const [subscribers, setSubscribers] = useState<any[]>([])
+  const [pageSEO, setPageSEO] = useState<PageSEO[]>(defaultPageSEO)
+  const [selectedSEOId, setSelectedSEOId] = useState<string>('home')
+  const [activeSection, setActiveSection] = useState<'posts' | 'newsletter' | 'seo'>('posts')
   const formRef = useRef(form)
   const pendingImageUploadRef = useRef<Promise<void> | null>(null)
   const contentInputRef = useRef<HTMLDivElement | null>(null)
@@ -219,6 +222,26 @@ function Dashboard() {
   const customPostsCount = allPosts.filter((post) => post.source === 'custom').length
   const defaultPostsCount = allPosts.length - customPostsCount
   const publishedCount = allPosts.filter((post) => post.published === true).length
+
+  const allSEOItems = useMemo(() => {
+    const items = [...pageSEO]
+    allPosts.forEach(post => {
+      const existing = items.find(item => item.id === `post-${post.id}`)
+      if (!existing) {
+        items.push({
+          id: `post-${post.id}`,
+          path: `/post/${post.slug}`,
+          title: post.title,
+          description: post.excerpt,
+          canonicalUrl: `https://mca-exposes.com/post/${post.slug}`,
+          type: 'post',
+        })
+      }
+    })
+    return items
+  }, [pageSEO, allPosts])
+
+  const selectedSEO = allSEOItems.find(item => item.id === selectedSEOId) || allSEOItems[0]
 
   const handleLogout = () => {
     logout()
@@ -326,9 +349,15 @@ function Dashboard() {
     }
   }
 
+  const refreshPageSEO = async () => {
+    const seo = await getAllPageSEO()
+    setPageSEO(seo)
+  }
+
   useEffect(() => {
     void refreshPosts()
     void refreshSubscribers()
+    void refreshPageSEO()
   }, [])
 
   useEffect(() => {
@@ -516,14 +545,8 @@ function Dashboard() {
         setMessage('Post save failed. Please make sure the local posts server is running.')
         return
       }
-      setSavedPost(createdPost)
       setNewPostId(createdPost.id)
       setMessage('Post saved successfully and added to the list!')
-      
-      // Auto-close modal after 2 seconds
-      setTimeout(() => {
-        setSavedPost(null)
-      }, 2000)
     }
 
     await refreshPosts()
@@ -617,6 +640,16 @@ function Dashboard() {
     setMessage(`"${post.title}" has been removed from the Records page.`)
   }
 
+  const handleUpdatePageSEO = async (id: string, updates: Partial<PageSEO>) => {
+    const updated = await updatePageSEO(id, updates)
+    if (!updated) {
+      setMessage('SEO update failed. Please try again.')
+      return
+    }
+    await refreshPageSEO()
+    setMessage(`SEO settings for ${id} updated successfully.`)
+  }
+
   const handlePublishPostDirect = async () => {
     await waitForPendingImageUpload()
     const payload = getSanitizedFormPayload(formRef.current)
@@ -673,344 +706,408 @@ function Dashboard() {
     <div className={styles.pageWrap}>
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
-          <div className={styles.dashboardHeader}>
-            <div className={styles.headerContent}>
-              <h1>Post Dashboard</h1>
-              <p>Create, edit, and manage records that appear on The Records page.</p>
-              <div className={styles.statsRow}>
-                <div className={styles.statChip}>
-                  <span className={styles.statLabel}>Total Posts</span>
-                  <strong>{allPosts.length}</strong>
-                </div>
-                <div className={styles.statChip}>
-                  <span className={styles.statLabel}>Custom</span>
-                  <strong>{customPostsCount}</strong>
-                </div>
-                <div className={styles.statChip}>
-                  <span className={styles.statLabel}>Published</span>
-                  <strong>{publishedCount}</strong>
-                </div>
-                <div className={styles.statChip}>
-                  <span className={styles.statLabel}>Default</span>
-                  <strong>{defaultPostsCount}</strong>
-                </div>
-              </div>
-            </div>
-            <div className={styles.userInfo}>
-              <span className={styles.userLabel}>Logged in as: <strong>{username}</strong></span>
-              <button className={styles.logoutBtn} onClick={handleLogout}>
-                Logout
-              </button>
-            </div>
+          <div className={styles.tabButtons}>
+            <button
+              className={`${styles.tabBtn} ${activeSection === 'posts' ? styles.tabActive : ''}`}
+              onClick={() => setActiveSection('posts')}
+            >
+              Post Dashboard
+            </button>
+            <button
+              className={`${styles.tabBtn} ${activeSection === 'newsletter' ? styles.tabActive : ''}`}
+              onClick={() => setActiveSection('newsletter')}
+            >
+              Newsletter
+            </button>
+            <button
+              className={`${styles.tabBtn} ${activeSection === 'seo' ? styles.tabActive : ''}`}
+              onClick={() => setActiveSection('seo')}
+            >
+              SEO Settings
+            </button>
           </div>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <section className={styles.formSection}>
-              <h2>Post Details</h2>
-              <div className={styles.grid}>
-                <label>
-                  Title
-                  <input value={form.title} onChange={onChange('title')} />
-                </label>
+          {activeSection === 'posts' && (
+            <>
+              <div className={styles.dashboardHeader}>
+                <div className={styles.headerContent}>
+                  <h1>Post Dashboard</h1>
+                  <p>Create, edit, and manage records that appear on The Records page.</p>
+                  <div className={styles.statsRow}>
+                    <div className={styles.statChip}>
+                      <span className={styles.statLabel}>Total Posts</span>
+                      <strong>{allPosts.length}</strong>
+                    </div>
+                    <div className={styles.statChip}>
+                      <span className={styles.statLabel}>Custom</span>
+                      <strong>{customPostsCount}</strong>
+                    </div>
+                    <div className={styles.statChip}>
+                      <span className={styles.statLabel}>Published</span>
+                      <strong>{publishedCount}</strong>
+                    </div>
+                    <div className={styles.statChip}>
+                      <span className={styles.statLabel}>Default</span>
+                      <strong>{defaultPostsCount}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.userInfo}>
+                  <span className={styles.userLabel}>Logged in as: <strong>{username}</strong></span>
+                  <button className={styles.logoutBtn} onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
+              </div>
 
+              <form className={styles.form} onSubmit={handleSubmit}>
+                <section className={styles.formSection}>
+                  <h2>Post Details</h2>
+                  <div className={styles.grid}>
+                    <label>
+                      Title
+                      <input value={form.title} onChange={onChange('title')} />
+                    </label>
+
+                    <label>
+                      Category
+                      <select value={form.category} onChange={onChange('category')}>
+                        <option value="MCA Awareness">MCA Awareness</option>
+                        <option value="The Fraud Files">The Fraud Files</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      Date
+                      <input placeholder="Aug 25, 2025" value={form.date} onChange={onChange('date')} />
+                    </label>
+
+                    <label>
+                      Read Time
+                      <input placeholder="4 min read" value={form.readTime} onChange={onChange('readTime')} />
+                    </label>
+                  </div>
+
+                  <label>
+                    Excerpt
+                    <textarea rows={3} value={form.excerpt} onChange={onChange('excerpt')} />
+                  </label>
+
+                  <label>
+                    Full Post Content
+                    <div className={styles.editorTools}>
+                      <div className={styles.toolGroup}>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('heading')} title="Heading" aria-label="Heading">
+                          H2
+                        </button>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bold')} title="Bold" aria-label="Bold">
+                          <strong>B</strong>
+                        </button>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('italic')} title="Italic" aria-label="Italic">
+                          <em>I</em>
+                        </button>
+                      </div>
+
+                      <div className={styles.toolDivider}></div>
+
+                      <div className={styles.toolGroup}>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bullet')} title="Bullet list" aria-label="Bullet list">
+                          • List
+                        </button>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('number')} title="Numbered list" aria-label="Numbered list">
+                          1. List
+                        </button>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('quote')} title="Quote" aria-label="Quote">
+                          " "
+                        </button>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('link')} title="Link" aria-label="Link">
+                          Link
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      style={{ display: 'none' }}
+                      value={form.content}
+                      readOnly
+                    />
+                    <div
+                      ref={contentInputRef}
+                      className={styles.richEditor}
+                      contentEditable
+                      role="textbox"
+                      aria-label="Full Post Content Editor"
+                      onInput={syncContentFromEditor}
+                      onPaste={handleEditorPaste}
+                      onBlur={smartFormatEditorIfNeeded}
+                      suppressContentEditableWarning
+                    ></div>
+                    <span className={styles.editorHint}>
+                      Tip: Paste text to auto-format title, paragraphs, lists, and links.
+                    </span>
+                    <div className={styles.inlineFileTools}>
+                      <h3>Insert Download File In Content</h3>
+                      <div className={styles.inlineFileRow}>
+                        <input
+                          type="file"
+                          onChange={onInlineFileChange}
+                          aria-label="Choose file to insert in content"
+                        />
+                        <input
+                          type="text"
+                          value={inlineFileTitle}
+                          onChange={(event) => setInlineFileTitle(event.target.value)}
+                          placeholder="Download title shown in post"
+                          aria-label="Download title"
+                        />
+                        <button
+                          type="button"
+                          className={styles.insertFileBtn}
+                          onClick={insertInlineDownloadLink}
+                        >
+                          Insert File Link
+                        </button>
+                      </div>
+                      {inlineFileName && (
+                        <div className={styles.filePreview}>
+                          <p className={styles.fileName}>📄 {inlineFileName}</p>
+                          <button
+                            type="button"
+                            className={styles.clearFileBtn}
+                            onClick={clearInlineFile}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                </section>
+
+                <section className={styles.formSection}>
+                  <h2>Media</h2>
+                  <div className={styles.mediaGrid}>
+                    <div className={styles.mediaCard}>
+                      <label>
+                        Cover Image Upload
+                        <input type="file" accept="image/*" onChange={onImageFileChange('image')} />
+                        <span className={styles.uploadNote}>Upload an image file from your device.</span>
+                      </label>
+                      {form.image && (
+                        <div className={styles.imagePreview}>
+                          <img src={form.image} alt="Cover preview" className={styles.previewImage} />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.mediaCard}>
+                      <label>
+                        Image Below Post Content
+                        <input type="file" accept="image/*" onChange={onImageFileChange('contentImage')} />
+                        <span className={styles.uploadNote}>Optional image shown below the full post content.</span>
+                      </label>
+                      {form.contentImage && (
+                        <div className={styles.imagePreview}>
+                          <img src={form.contentImage} alt="Content image preview" className={styles.previewImage} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <div className={styles.actionsRow}>
+                  <button type="submit">
+                    {isUploadingImage ? 'Uploading Image...' : editingId ? 'Update Post' : 'Save Post'}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.publishActionBtn}
+                    onClick={handlePublishPostDirect}
+                  >
+                    {isUploadingImage ? 'Uploading Image...' : 'Publish Post'}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.newPostBtn}
+                    onClick={startNewPost}
+                  >
+                    Add New Post
+                  </button>
+                  {editingId && (
+                    <button
+                      type="button"
+                      className={styles.cancelBtn}
+                      onClick={cancelEdit}
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+                {message && <p className={styles.message}>{message}</p>}
+              </form>
+
+              <section className={styles.savedSection}>
+                <h2>All Posts (Records + Custom)</h2>
+                {allPosts.length === 0 ? (
+                  <p className={styles.emptyText}>No posts available.</p>
+                ) : (
+                  <div className={styles.savedList}>
+                    {allPosts.map((post) => (
+                      <article key={post.id} className={`${styles.savedItem} ${newPostId === post.id ? styles.newPost : ''}`}>
+                        <img src={post.image} alt={post.title} className={styles.savedThumb} />
+
+                        <div className={styles.savedContent}>
+                          <div className={styles.savedTopRow}>
+                            <span className={post.source === 'custom' ? styles.customBadge : styles.defaultBadge}>
+                              {post.source === 'custom' ? 'Custom' : 'Default'}
+                            </span>
+                            <span className={styles.categoryBadge}>{post.category}</span>
+                            {post.published === true && (
+                              <span className={styles.publishedBadge}>Live</span>
+                            )}
+                          </div>
+                          <h3>{post.title}</h3>
+                          <p>{post.excerpt}</p>
+                          <div className={styles.savedMeta}>
+                            <span>{post.date}</span>
+                            <span>{post.readTime}</span>
+                          </div>
+                        </div>
+
+                        <div className={styles.savedActions}>
+                          <button type="button" onClick={() => startEdit(post)}>
+                            Edit
+                          </button>
+                          {post.source === 'custom' && post.published !== true && (
+                            <button
+                              type="button"
+                              className={styles.publishBtn}
+                              onClick={() => handlePublish(post)}
+                            >
+                              Publish
+                            </button>
+                          )}
+                          {post.source === 'custom' && post.published === true && (
+                            <button
+                              type="button"
+                              className={styles.unpublishBtn}
+                              onClick={() => handleUnpublish(post)}
+                            >
+                              Unpublish
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className={styles.deleteBtn}
+                            onClick={() => removePost(post)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+
+          {activeSection === 'newsletter' && (
+            <>
+              <div className={styles.dashboardHeader}>
+                <h2>Newsletter Subscribers</h2>
+                <p>Manage your newsletter subscribers and view subscription details.</p>
+                <div className={styles.statsRow}>
+                  <div className={styles.statChip}>
+                    <span className={styles.statLabel}>Total Subscribers</span>
+                    <strong>{subscribers.length}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {subscribers.length === 0 ? (
+                <p className={styles.emptyText}>No subscribers yet.</p>
+              ) : (
+                <div className={styles.savedList}>
+                  {subscribers.map((subscriber) => (
+                    <article key={subscriber.id} className={styles.savedItem}>
+                      <div className={styles.savedContent}>
+                        <h3>{subscriber.email}</h3>
+                        <div className={styles.savedMeta}>
+                          <span>Subscribed: {new Date(subscriber.subscribedAt).toLocaleDateString()}</span>
+                          <span>Consent: {subscriber.consent ? 'Given' : 'Not given'}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {activeSection === 'seo' && (
+            <>
+              <div className={styles.dashboardHeader}>
+                <h2>Page SEO Settings</h2>
+                <p>Manage meta titles, descriptions, and canonical URLs for each page to improve search engine optimization.</p>
+              </div>
+
+              <div className={styles.seoForm}>
                 <label>
-                  Category
-                  <select value={form.category} onChange={onChange('category')}>
-                    <option value="MCA Awareness">MCA Awareness</option>
-                    <option value="The Fraud Files">The Fraud Files</option>
-                    <option value="Other">Other</option>
+                  Select Page/Post to Edit SEO
+                  <select value={selectedSEOId} onChange={(e) => setSelectedSEOId(e.target.value)}>
+                    {allSEOItems.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.type === 'page' ? item.id.charAt(0).toUpperCase() + item.id.slice(1) : item.title} ({item.path})
+                      </option>
+                    ))}
                   </select>
                 </label>
 
-                <label>
-                  Date
-                  <input placeholder="Aug 25, 2025" value={form.date} onChange={onChange('date')} />
-                </label>
-
-                <label>
-                  Read Time
-                  <input placeholder="4 min read" value={form.readTime} onChange={onChange('readTime')} />
-                </label>
-              </div>
-
-              <label>
-                Excerpt
-                <textarea rows={3} value={form.excerpt} onChange={onChange('excerpt')} />
-              </label>
-
-              <label>
-                Full Post Content
-                <div className={styles.editorTools}>
-                  <div className={styles.toolGroup}>
-                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('heading')} title="Heading" aria-label="Heading">
-                      H2
-                    </button>
-                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bold')} title="Bold" aria-label="Bold">
-                      <strong>B</strong>
-                    </button>
-                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('italic')} title="Italic" aria-label="Italic">
-                      <em>I</em>
-                    </button>
-                  </div>
-
-                  <div className={styles.toolDivider}></div>
-
-                  <div className={styles.toolGroup}>
-                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bullet')} title="Bullet list" aria-label="Bullet list">
-                      • List
-                    </button>
-                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('number')} title="Numbered list" aria-label="Numbered list">
-                      1. List
-                    </button>
-                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('quote')} title="Quote" aria-label="Quote">
-                      “ ”
-                    </button>
-                    <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('link')} title="Link" aria-label="Link">
-                      Link
-                    </button>
-                  </div>
-                </div>
-                <textarea
-                  style={{ display: 'none' }}
-                  value={form.content}
-                  readOnly
-                />
-                <div
-                  ref={contentInputRef}
-                  className={styles.richEditor}
-                  contentEditable
-                  role="textbox"
-                  aria-label="Full Post Content Editor"
-                  onInput={syncContentFromEditor}
-                  onPaste={handleEditorPaste}
-                  onBlur={smartFormatEditorIfNeeded}
-                  suppressContentEditableWarning
-                ></div>
-                <span className={styles.editorHint}>
-                  Tip: Paste text to auto-format title, paragraphs, lists, and links.
-                </span>
-                <div className={styles.inlineFileTools}>
-                  <h3>Insert Download File In Content</h3>
-                  <div className={styles.inlineFileRow}>
-                    <input
-                      type="file"
-                      onChange={onInlineFileChange}
-                      aria-label="Choose file to insert in content"
-                    />
-                    <input
-                      type="text"
-                      value={inlineFileTitle}
-                      onChange={(event) => setInlineFileTitle(event.target.value)}
-                      placeholder="Download title shown in post"
-                      aria-label="Download title"
-                    />
-                    <button
-                      type="button"
-                      className={styles.insertFileBtn}
-                      onClick={insertInlineDownloadLink}
-                    >
-                      Insert File Link
-                    </button>
-                  </div>
-                  {inlineFileName && (
-                    <div className={styles.filePreview}>
-                      <p className={styles.fileName}>📄 {inlineFileName}</p>
-                      <button
-                        type="button"
-                        className={styles.clearFileBtn}
-                        onClick={clearInlineFile}
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </label>
-            </section>
-
-            <section className={styles.formSection}>
-              <h2>Media</h2>
-              <div className={styles.mediaGrid}>
-                <div className={styles.mediaCard}>
-                  <label>
-                    Cover Image Upload
-                    <input type="file" accept="image/*" onChange={onImageFileChange('image')} />
-                    <span className={styles.uploadNote}>Upload an image file from your device.</span>
-                  </label>
-                  {form.image && (
-                    <div className={styles.imagePreview}>
-                      <img src={form.image} alt="Cover preview" className={styles.previewImage} />
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.mediaCard}>
-                  <label>
-                    Image Below Post Content
-                    <input type="file" accept="image/*" onChange={onImageFileChange('contentImage')} />
-                    <span className={styles.uploadNote}>Optional image shown below the full post content.</span>
-                  </label>
-                  {form.contentImage && (
-                    <div className={styles.imagePreview}>
-                      <img src={form.contentImage} alt="Content image preview" className={styles.previewImage} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <div className={styles.actionsRow}>
-              <button type="submit">
-                {isUploadingImage ? 'Uploading Image...' : editingId ? 'Update Post' : 'Save Post'}
-              </button>
-              <button
-                type="button"
-                className={styles.publishActionBtn}
-                onClick={handlePublishPostDirect}
-              >
-                {isUploadingImage ? 'Uploading Image...' : 'Publish Post'}
-              </button>
-              <button
-                type="button"
-                className={styles.newPostBtn}
-                onClick={startNewPost}
-              >
-                Add New Post
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={cancelEdit}
-                >
-                  Cancel Edit
-                </button>
-              )}
-            </div>
-            {message && <p className={styles.message}>{message}</p>}
-          </form>
-
-          <section className={styles.savedSection}>
-            <h2>All Posts (Records + Custom)</h2>
-            {allPosts.length === 0 ? (
-              <p className={styles.emptyText}>No posts available.</p>
-            ) : (
-              <div className={styles.savedList}>
-                {allPosts.map((post) => (
-                  <article key={post.id} className={`${styles.savedItem} ${newPostId === post.id ? styles.newPost : ''}`}>
-                    <img src={post.image} alt={post.title} className={styles.savedThumb} />
-
-                    <div className={styles.savedContent}>
-                      <div className={styles.savedTopRow}>
-                        <span className={post.source === 'custom' ? styles.customBadge : styles.defaultBadge}>
-                          {post.source === 'custom' ? 'Custom' : 'Default'}
-                        </span>
-                        <span className={styles.categoryBadge}>{post.category}</span>
-                        {post.published === true && (
-                          <span className={styles.publishedBadge}>Live</span>
-                        )}
-                      </div>
-                      <h3>{post.title}</h3>
-                      <p>{post.excerpt}</p>
-                      <div className={styles.savedMeta}>
-                        <span>{post.date}</span>
-                        <span>{post.readTime}</span>
-                      </div>
-                    </div>
-
-                    <div className={styles.savedActions}>
-                      <button type="button" onClick={() => startEdit(post)}>
-                        Edit
-                      </button>
-                      {post.source === 'custom' && post.published !== true && (
-                        <button
-                          type="button"
-                          className={styles.publishBtn}
-                          onClick={() => handlePublish(post)}
-                        >
-                          Publish
-                        </button>
-                      )}
-                      {post.source === 'custom' && post.published === true && (
-                        <button
-                          type="button"
-                          className={styles.unpublishBtn}
-                          onClick={() => handleUnpublish(post)}
-                        >
-                          Unpublish
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className={styles.deleteBtn}
-                        onClick={() => removePost(post)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {savedPost && (
-            <div className={styles.popupOverlay} role="dialog" aria-modal="true" aria-labelledby="post-saved-title" onClick={() => setSavedPost(null)}>
-              <div className={styles.popupCard} onClick={(e) => e.stopPropagation()}>
-                <h3 id="post-saved-title">Post saved successfully</h3>
-                <p>What would you like to do next?</p>
-                <div className={styles.popupActions}>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/post/${savedPost.slug}`)}
+                {selectedSEO && (
+                  <form
+                    className={styles.seoEditForm}
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      const formData = new FormData(e.target as HTMLFormElement)
+                      const updates = {
+                        title: (formData.get('title') as string).trim(),
+                        description: (formData.get('description') as string).trim(),
+                        canonicalUrl: (formData.get('canonicalUrl') as string).trim(),
+                      }
+                      handleUpdatePageSEO(selectedSEO.id, updates)
+                    }}
                   >
-                    View Post
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.stayBtn}
-                    onClick={() => setSavedPost(null)}
-                  >
-                    Stay on Dashboard
-                  </button>
-                </div>
+                    <label>
+                      Meta Title
+                      <input
+                        name="title"
+                        defaultValue={selectedSEO.title}
+                        placeholder="Page title for search engines"
+                      />
+                    </label>
+                    <label>
+                      Meta Description
+                      <textarea
+                        name="description"
+                        rows={3}
+                        defaultValue={selectedSEO.description}
+                        placeholder="Page description for search engines"
+                      />
+                    </label>
+                    <label>
+                      Canonical URL
+                      <input
+                        name="canonicalUrl"
+                        defaultValue={selectedSEO.canonicalUrl}
+                        placeholder="https://example.com/page"
+                      />
+                    </label>
+                    <button type="submit">Update SEO</button>
+                  </form>
+                )}
               </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <div className={styles.divider}></div>
-
-      <section className={styles.heroSection}>
-        <div className={styles.contentContainer}>
-          <div className={styles.dashboardHeader}>
-            <h2>Newsletter Subscribers</h2>
-            <p>Manage your newsletter subscribers and view subscription details.</p>
-            <div className={styles.statsRow}>
-              <div className={styles.statChip}>
-                <span className={styles.statLabel}>Total Subscribers</span>
-                <strong>{subscribers.length}</strong>
-              </div>
-            </div>
-          </div>
-
-          {subscribers.length === 0 ? (
-            <p className={styles.emptyText}>No subscribers yet.</p>
-          ) : (
-            <div className={styles.savedList}>
-              {subscribers.map((subscriber) => (
-                <article key={subscriber.id} className={styles.savedItem}>
-                  <div className={styles.savedContent}>
-                    <h3>{subscriber.email}</h3>
-                    <div className={styles.savedMeta}>
-                      <span>Subscribed: {new Date(subscriber.subscribedAt).toLocaleDateString()}</span>
-                      <span>Consent: {subscriber.consent ? 'Given' : 'Not given'}</span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+            </>
           )}
         </div>
       </section>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import FooterSection from '../components/FooterSection'
+import { SEO } from '../components/SEO'
 import { getAllPosts, type Post, type PostCategory } from '../data/posts'
 import styles from './Records.module.css'
 
@@ -76,6 +77,7 @@ function Records() {
 
   return (
     <div className={styles.pageWrap}>
+      <SEO path="/records" />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>All Posts</h1>

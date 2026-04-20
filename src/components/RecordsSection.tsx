@@ -31,7 +31,7 @@ function RecordsSection() {
       <h2 className={styles.fraudTitle}>The Fraud Files</h2>
 
       <div className={styles.recordsGrid}>
-        {fraudPosts.map((post, index) => (
+        {fraudPosts.map((post) => (
           <Link to={`/post/${post.slug}`} key={post.id} className={styles.recordCard}>
             <img src={post.image} alt="record" />
 

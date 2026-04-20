@@ -5,6 +5,7 @@ import RecordsSection from '../components/RecordsSection'
 import AwarenessSection from '../components/AwarenessSection'
 import ReportSection from '../components/ReportSection'
 import FooterSection from '../components/FooterSection'
+import { SEO } from '../components/SEO'
 
 function Home() {
   const subtitleText =
@@ -24,6 +25,7 @@ function Home() {
 
   return (
     <>
+      <SEO path="/" />
       <section className={styles.hero}>
         <div className={styles.overlay}></div>
 

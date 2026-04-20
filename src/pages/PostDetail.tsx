@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { useEffect, useState, type ReactNode } from 'react'
 import FooterSection from '../components/FooterSection'
+import { SEO } from '../components/SEO'
 import { findPostBySlug, type Post } from '../data/posts'
 import styles from './PostDetail.module.css'
 
@@ -232,6 +233,7 @@ function PostDetail() {
 
   return (
     <div className={styles.pageWrap}>
+      <SEO path={`/post/${slug || ''}`} />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           {isLoading ? (

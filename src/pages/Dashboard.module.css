@@ -759,3 +759,114 @@
     flex: 1;
   }
 }
+
+.seoForm {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.seoForm label {
+  display: grid;
+  gap: 0.4rem;
+  color: #ebebeb;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.seoForm select,
+.seoForm input,
+.seoForm textarea {
+  width: 100%;
+  background: #090909;
+  border: 1px solid #303030;
+  color: #fff;
+  padding: 0.68rem 0.72rem;
+  border-radius: 8px;
+  outline: none;
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.seoForm select:focus,
+.seoForm input:focus,
+.seoForm textarea:focus {
+  border-color: #39ff14;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.15);
+}
+
+.seoEditForm {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #2a2a2a;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.seoEditForm label {
+  display: grid;
+  gap: 0.4rem;
+  color: #ebebeb;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.seoEditForm input,
+.seoEditForm textarea {
+  width: 100%;
+  background: #090909;
+  border: 1px solid #303030;
+  color: #fff;
+  padding: 0.68rem 0.72rem;
+  border-radius: 8px;
+  outline: none;
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.seoEditForm input:focus,
+.seoEditForm textarea:focus {
+  border-color: #39ff14;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.15);
+}
+
+.seoEditForm button {
+  justify-self: start;
+  background: linear-gradient(140deg, #39ff14, #70ff54);
+  color: #000;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.62rem 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.tabButtons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tabBtn {
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2a2a2a;
+  color: #d1d1d1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.tabBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #39ff14;
+  color: #39ff14;
+}
+
+.tabActive {
+  background: linear-gradient(140deg, #39ff14, #70ff54);
+  color: #000;
+  border-color: #39ff14;
+}

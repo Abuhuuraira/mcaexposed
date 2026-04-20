@@ -20,7 +20,7 @@ function AwarenessSection() {
       <h1 className={styles.awarenessTitle}>MCA Awareness</h1>
 
       <div className={styles.awarenessGrid}>
-        {awarenessPosts.map((post, index) => (
+        {awarenessPosts.map((post) => (
           <Link to={`/post/${post.slug}`} key={post.id} className={styles.awarenessCard}>
             <div className={styles.topRed}>
               MCA <br /> AWARENESS
