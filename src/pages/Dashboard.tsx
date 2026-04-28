@@ -449,7 +449,9 @@ function Dashboard() {
     setMessage('Download link inserted into post content.')
   }
 
-  const handleFormatContent = (action: 'bold' | 'italic' | 'heading' | 'quote' | 'bullet' | 'number' | 'link') => {
+  const handleFormatContent = (
+    action: 'bold' | 'italic' | 'heading' | 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'quote' | 'bullet' | 'number' | 'link' | 'color' | 'font' | 'fontSize'
+  ) => {
     if (action === 'bold') {
       runCommand('bold')
       return
@@ -457,6 +459,31 @@ function Dashboard() {
 
     if (action === 'italic') {
       runCommand('italic')
+      return
+    }
+
+    if (action === 'h1') {
+      runCommand('formatBlock', 'h1')
+      return
+    }
+
+    if (action === 'h2') {
+      runCommand('formatBlock', 'h2')
+      return
+    }
+
+    if (action === 'h3') {
+      runCommand('formatBlock', 'h3')
+      return
+    }
+
+    if (action === 'h4') {
+      runCommand('formatBlock', 'h4')
+      return
+    }
+
+    if (action === 'p') {
+      runCommand('formatBlock', 'p')
       return
     }
 
@@ -477,6 +504,33 @@ function Dashboard() {
 
     if (action === 'number') {
       runCommand('insertOrderedList')
+      return
+    }
+
+    if (action === 'color') {
+      const color = window.prompt('Enter color (e.g., #FF0000 or red)', '#000000')
+      if (!color) {
+        return
+      }
+      runCommand('foreColor', color)
+      return
+    }
+
+    if (action === 'font') {
+      const font = window.prompt('Enter font family (e.g., Arial, Georgia, Georgia, Courier New, Verdana)', 'Arial')
+      if (!font) {
+        return
+      }
+      runCommand('fontName', font)
+      return
+    }
+
+    if (action === 'fontSize') {
+      const size = window.prompt('Enter font size (1-7, where 1=8px, 3=16px, 5=32px)', '3')
+      if (!size) {
+        return
+      }
+      runCommand('fontSize', size)
       return
     }
 
@@ -766,7 +820,27 @@ function Dashboard() {
                   <div className={styles.grid}>
                     <label>
                       Title
-                      <input value={form.title} onChange={onChange('title')} />
+                      <div className={styles.titleInputWrapper}>
+                        <input value={form.title} onChange={onChange('title')} />
+                        <button
+                          type="button"
+                          className={styles.insertTitleBtn}
+                          onClick={() => {
+                            if (form.title && contentInputRef.current) {
+                              const div = document.createElement('div')
+                              const h1 = document.createElement('h1')
+                              h1.textContent = form.title
+                              div.appendChild(h1)
+                              contentInputRef.current.innerHTML += div.innerHTML
+                              syncContentFromEditor()
+                              setMessage('Title inserted as H1 in content.')
+                            }
+                          }}
+                          title="Insert title as H1 heading in content"
+                        >
+                          Insert as H1
+                        </button>
+                      </div>
                     </label>
 
                     <label>
@@ -798,14 +872,32 @@ function Dashboard() {
                     Full Post Content
                     <div className={styles.editorTools}>
                       <div className={styles.toolGroup}>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('heading')} title="Heading" aria-label="Heading">
-                          H2
-                        </button>
+                        <select className={styles.toolSelect} onChange={(e) => handleFormatContent(e.target.value as any)} defaultValue="p" title="Heading Style">
+                          <option value="p">Paragraph</option>
+                          <option value="h1">H1 - Title</option>
+                          <option value="h2">H2 - Heading</option>
+                          <option value="h3">H3 - Subheading</option>
+                          <option value="h4">H4 - Minor Heading</option>
+                        </select>
                         <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bold')} title="Bold" aria-label="Bold">
                           <strong>B</strong>
                         </button>
                         <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('italic')} title="Italic" aria-label="Italic">
                           <em>I</em>
+                        </button>
+                      </div>
+
+                      <div className={styles.toolDivider}></div>
+
+                      <div className={styles.toolGroup}>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('color')} title="Text Color" aria-label="Text Color">
+                          🎨 Color
+                        </button>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('font')} title="Font Family" aria-label="Font Family">
+                          ✎ Font
+                        </button>
+                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('fontSize')} title="Font Size" aria-label="Font Size">
+                          A+ Size
                         </button>
                       </div>
 

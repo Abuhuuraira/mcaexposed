@@ -155,6 +155,36 @@
   font-weight: 500;
 }
 
+.titleInputWrapper {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.titleInputWrapper input {
+  flex: 1;
+}
+
+.insertTitleBtn {
+  min-width: 120px;
+  background: linear-gradient(135deg, rgba(57, 255, 20, 0.7), rgba(112, 255, 84, 0.7));
+  color: #000;
+  border: 1px solid #39ff14;
+  border-radius: 6px;
+  padding: 0.68rem 0.8rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.insertTitleBtn:hover {
+  background: linear-gradient(135deg, #39ff14, #70ff54);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(57, 255, 20, 0.2);
+}
+
 .form input,
 .form textarea,
 .form select {
@@ -247,6 +277,37 @@
   outline: none;
   border-color: #65ff4a;
   box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.2);
+}
+
+.toolSelect {
+  min-width: 120px;
+  height: 34px;
+  padding: 0 0.6rem;
+  background: #161616;
+  color: #d7ffd0;
+  border: 1px solid #343434;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.toolSelect:hover {
+  border-color: #39ff14;
+  background: #1d2a1a;
+}
+
+.toolSelect:focus {
+  outline: none;
+  border-color: #65ff4a;
+  background: #1d2a1a;
+  box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.2);
+}
+
+.toolSelect option {
+  background: #1a1a1a;
+  color: #d7ffd0;
 }
 
 .editorHint {
