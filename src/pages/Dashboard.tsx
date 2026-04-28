@@ -214,6 +214,9 @@ function Dashboard() {
   const [pageSEO, setPageSEO] = useState<PageSEO[]>(defaultPageSEO)
   const [selectedSEOId, setSelectedSEOId] = useState<string>('home')
   const [activeSection, setActiveSection] = useState<'posts' | 'newsletter' | 'seo'>('posts')
+  const [showFontPicker, setShowFontPicker] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
+  const [selectedColor, setSelectedColor] = useState('#000000')
   const formRef = useRef(form)
   const pendingImageUploadRef = useRef<Promise<void> | null>(null)
   const contentInputRef = useRef<HTMLDivElement | null>(null)
@@ -508,20 +511,12 @@ function Dashboard() {
     }
 
     if (action === 'color') {
-      const color = window.prompt('Enter color (e.g., #FF0000 or red)', '#000000')
-      if (!color) {
-        return
-      }
-      runCommand('foreColor', color)
+      setShowColorPicker(true)
       return
     }
 
     if (action === 'font') {
-      const font = window.prompt('Enter font family (e.g., Arial, Georgia, Georgia, Courier New, Verdana)', 'Arial')
-      if (!font) {
-        return
-      }
-      runCommand('fontName', font)
+      setShowFontPicker(true)
       return
     }
 
@@ -541,6 +536,19 @@ function Dashboard() {
       }
       runCommand('createLink', link)
     }
+  }
+
+  const handleApplyFont = (fontFamily: string) => {
+    runCommand('fontName', fontFamily)
+    setShowFontPicker(false)
+    contentInputRef.current?.focus()
+  }
+
+  const handleApplyColor = (color: string) => {
+    runCommand('foreColor', color)
+    setSelectedColor(color)
+    setShowColorPicker(false)
+    contentInputRef.current?.focus()
   }
 
   const waitForPendingImageUpload = async () => {
@@ -889,13 +897,53 @@ function Dashboard() {
 
                       <div className={styles.toolDivider}></div>
 
-                      <div className={styles.toolGroup}>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('color')} title="Text Color" aria-label="Text Color">
-                          🎨 Color
-                        </button>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('font')} title="Font Family" aria-label="Font Family">
-                          ✎ Font
-                        </button>
+                      <div className={styles.toolGroup} style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative' }}>
+                          <button type="button" className={styles.toolBtn} onClick={() => setShowColorPicker(!showColorPicker)} title="Text Color" aria-label="Text Color">
+                            🎨 Color
+                          </button>
+                          {showColorPicker && (
+                            <div className={styles.pickerDropdown} style={{ top: '100%', left: 0, marginTop: '0.4rem' }}>
+                              <div className={styles.colorPickerDropdown}>
+                                <input
+                                  type="color"
+                                  value={selectedColor}
+                                  onChange={(e) => {
+                                    setSelectedColor(e.target.value)
+                                    handleApplyColor(e.target.value)
+                                  }}
+                                  className={styles.colorInputDropdown}
+                                  autoFocus
+                                />
+                                <div className={styles.colorPreviewDropdown} style={{ backgroundColor: selectedColor }}></div>
+                                <p className={styles.colorValueDropdown}>{selectedColor}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                          <button type="button" className={styles.toolBtn} onClick={() => setShowFontPicker(!showFontPicker)} title="Font Family" aria-label="Font Family">
+                            ✎ Font
+                          </button>
+                          {showFontPicker && (
+                            <div className={styles.pickerDropdown} style={{ top: '100%', left: 0, marginTop: '0.4rem' }}>
+                              <div className={styles.fontPickerDropdown}>
+                                {['Arial', 'Helvetica', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana'].map((font) => (
+                                  <button
+                                    key={font}
+                                    type="button"
+                                    className={styles.fontOptionDropdown}
+                                    style={{ fontFamily: font }}
+                                    onClick={() => handleApplyFont(font)}
+                                    title={`Select ${font}`}
+                                  >
+                                    {font}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('fontSize')} title="Font Size" aria-label="Font Size">
                           A+ Size
                         </button>
@@ -918,6 +966,7 @@ function Dashboard() {
                         </button>
                       </div>
                     </div>
+
                     <textarea
                       style={{ display: 'none' }}
                       value={form.content}

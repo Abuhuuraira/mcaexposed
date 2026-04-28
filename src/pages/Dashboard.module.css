@@ -931,3 +931,100 @@
   color: #000;
   border-color: #39ff14;
 }
+/* Picker Dropdown Styles */
+.pickerDropdown {
+  position: absolute;
+  z-index: 100;
+  animation: dropdownSlideIn 0.2s ease;
+  white-space: nowrap;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.colorPickerDropdown {
+  background: #1a1a1a;
+  border: 2px solid #39ff14;
+  border-radius: 8px;
+  padding: 0.8rem;
+  box-shadow: 0 8px 24px rgba(57, 255, 20, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: fit-content;
+}
+
+.colorInputDropdown {
+  width: 55px;
+  height: 55px;
+  border: 2px solid rgba(57, 255, 20, 0.5);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.colorInputDropdown:hover {
+  border-color: #39ff14;
+}
+
+.colorPreviewDropdown {
+  width: 70px;
+  height: 55px;
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.colorValueDropdown {
+  margin: 0;
+  color: #d1d1d1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  min-width: 70px;
+}
+
+.fontPickerDropdown {
+  background: #1a1a1a;
+  border: 2px solid #39ff14;
+  border-radius: 8px;
+  padding: 0.6rem;
+  box-shadow: 0 8px 24px rgba(57, 255, 20, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 160px;
+}
+
+.fontOptionDropdown {
+  padding: 0.7rem 0.9rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(57, 255, 20, 0.15);
+  color: #d1d1d1;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.fontOptionDropdown:hover {
+  background: rgba(57, 255, 20, 0.15);
+  border-color: #39ff14;
+  color: #39ff14;
+  transform: translateX(4px);
+}
+
+.cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
