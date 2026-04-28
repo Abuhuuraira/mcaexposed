@@ -26,7 +26,8 @@ function App() {
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/records" element={<Records />} />
+              <Route path="/the-records" element={<Records />} />
+              <Route path="/the-records/:category" element={<Records />} />
               <Route path="/login" element={<Login />} />
               <Route
                 path="/dashboard"
@@ -37,10 +38,10 @@ function App() {
                 }
               />
               <Route path="/post/:slug" element={<PostDetail />} />
-              <Route path="/courts" element={<Courts />} />
-              <Route path="/story" element={<Story />} />
-              <Route path="/report" element={<Report />} />
-              <Route path="/faq" element={<Faq />} />
+              <Route path="/the-courts" element={<Courts />} />
+              <Route path="/the-story" element={<Story />} />
+              <Route path="/report-mca-fraud" element={<Report />} />
+              <Route path="/mca-frequently-asked-questions-legal-guide" element={<Faq />} />
               <Route path="/about" element={<About />} />
             </Routes>
           </main>

@@ -10,7 +10,7 @@ function Report() {
   
   return (
     <div className={styles.pageWrap}>
-      <SEO path="/report" />
+      <SEO path="/report-mca-fraud" />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>Make a Report</h1>

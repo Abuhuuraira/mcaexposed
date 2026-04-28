@@ -211,7 +211,7 @@ function Faq() {
 
   return (
     <div className={styles.pageWrap}>
-      <SEO path="/faq" />
+      <SEO path="/mca-frequently-asked-questions-legal-guide" />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>MCA Frequently Asked Questions - Legal Guide</h1>

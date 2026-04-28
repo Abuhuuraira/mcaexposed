@@ -39,7 +39,7 @@ function Courts() {
 
   return (
     <div className={styles.pageWrap}>
-      <SEO path="/courts" />
+      <SEO path="/the-courts" />
       <section className={styles.hero}>
         <img
           className={styles.heroImage}

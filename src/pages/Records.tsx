@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useParams } from 'react-router-dom'
 import FooterSection from '../components/FooterSection'
 import { SEO } from '../components/SEO'
 import { getAllPosts, type Post, type PostCategory } from '../data/posts'
@@ -28,9 +28,16 @@ const normalizeCategory = (value: string) => value.trim().toLowerCase()
 
 function Records() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const { category: categoryFromPath } = useParams()
   const [allPosts, setAllPosts] = useState<Post[]>([])
-  const activeFilter: FilterOption =
-    queryToCategory[searchParams.get('category') ?? 'all'] ?? 'All Posts'
+  
+  // Determine active filter from URL path parameter or query param
+  let activeFilter: FilterOption
+  if (categoryFromPath) {
+    activeFilter = queryToCategory[categoryFromPath] ?? 'All Posts'
+  } else {
+    activeFilter = queryToCategory[searchParams.get('category') ?? 'all'] ?? 'All Posts'
+  }
 
   useEffect(() => {
     if (activeFilter === 'All Posts') {
@@ -46,7 +53,16 @@ function Records() {
   }
 
   const handleFilterChange = (filter: FilterOption) => {
-    setSearchParams({ category: categoryToQuery[filter] })
+    if (filter === 'All Posts') {
+      // Navigate to base records page without category
+      window.location.href = '/the-records'
+    } else {
+      // Navigate to category-specific path
+      const categoryPath = categoryToQuery[filter]
+      if (categoryPath !== 'all') {
+        window.location.href = `/the-records/${categoryPath}`
+      }
+    }
   }
 
   useEffect(() => {
@@ -77,7 +93,7 @@ function Records() {
 
   return (
     <div className={styles.pageWrap}>
-      <SEO path="/records" />
+      <SEO path="/the-records" />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>All Posts</h1>

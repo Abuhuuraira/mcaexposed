@@ -233,7 +233,7 @@ function Dashboard() {
           path: `/post/${post.slug}`,
           title: post.title,
           description: post.excerpt,
-          canonicalUrl: `https://mca-exposes.com/post/${post.slug}`,
+          canonicalUrl: `https://mca.exposed/post/${post.slug}`,
           type: 'post',
         })
       }

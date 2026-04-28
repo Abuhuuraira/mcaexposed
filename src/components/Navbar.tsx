@@ -67,7 +67,7 @@ const Navbar = () => {
             Home
           </NavLink>
           <NavLink
-            to="/records"
+            to="/the-records"
             className={({ isActive }) =>
               `${styles['nav-btn']} ${isActive ? styles.active : ''}`
             }
@@ -76,7 +76,7 @@ const Navbar = () => {
             The Records
           </NavLink>
           <NavLink
-            to="/courts"
+            to="/the-courts"
             className={({ isActive }) =>
               `${styles['nav-btn']} ${isActive ? styles.active : ''}`
             }
@@ -85,7 +85,7 @@ const Navbar = () => {
             The Courts
           </NavLink>
           <NavLink
-            to="/story"
+            to="/the-story"
             className={({ isActive }) =>
               `${styles['nav-btn']} ${isActive ? styles.active : ''}`
             }
@@ -94,7 +94,7 @@ const Navbar = () => {
             The Story
           </NavLink>
           <NavLink
-            to="/report"
+            to="/report-mca-fraud"
             className={({ isActive }) =>
               `${styles['nav-btn']} ${isActive ? styles.active : ''}`
             }
@@ -103,7 +103,7 @@ const Navbar = () => {
             Make a Report
           </NavLink>
           <NavLink
-            to="/faq"
+            to="/mca-frequently-asked-questions-legal-guide"
             className={({ isActive }) =>
               `${styles['nav-btn']} ${isActive ? styles.active : ''}`
             }

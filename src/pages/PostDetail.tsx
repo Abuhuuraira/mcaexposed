@@ -244,7 +244,7 @@ function PostDetail() {
             <div className={styles.postCard}>
               <h1>Post not found</h1>
               <p>The post you requested does not exist.</p>
-              <Link to="/records" className={styles.backLink}>
+              <Link to="/the-records" className={styles.backLink}>
                 Back to Records
               </Link>
             </div>
@@ -276,7 +276,7 @@ function PostDetail() {
                 </div>
               )}
 
-              <Link to="/records" className={styles.backLink}>
+              <Link to="/the-records" className={styles.backLink}>
                 Back to Records
               </Link>
             </article>

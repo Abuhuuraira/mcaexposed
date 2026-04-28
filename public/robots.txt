@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /private
 
-Sitemap: https://mca-exposes.com/sitemap.xml
+Sitemap: https://mca.exposed/sitemap.xml

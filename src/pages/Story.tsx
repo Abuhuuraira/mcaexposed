@@ -10,7 +10,7 @@ function Story() {
 
   return (
     <div className={styles.pageWrap}>
-      <SEO path="/story" />
+      <SEO path="/the-story" />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>The Story Behind MCA Exposed</h1>

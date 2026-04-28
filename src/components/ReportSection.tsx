@@ -19,7 +19,7 @@ function ReportSection() {
           liens, or aggressive collections.
         </p>
 
-        <Link to="/report" className={styles.reportBtn}>
+        <Link to="/report-mca-fraud" className={styles.reportBtn}>
           Make a Report ›
         </Link>
       </div>
