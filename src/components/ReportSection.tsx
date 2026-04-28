@@ -5,9 +5,9 @@ function ReportSection() {
   return (
     <section className={styles.reportSection}>
       <div className={styles.reportContainer}>
-        <h1 className={styles.title}>Make a Report</h1>
+        <h2 className={styles.title}>Make a Report</h2>
 
-        <h2 className={styles.subtitle}>
+        <h3 className={styles.subtitle}>
           Have you or someone you know been <br />
           a victim of MCA fraud?
         </h2>

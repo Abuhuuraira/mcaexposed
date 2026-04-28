@@ -3,7 +3,7 @@ import styles from './MissionSection.module.css'
 function MissionSection() {
   return (
     <section className={styles.missionSection}>
-      <h1 className={styles.missionTitle}>Our Mission Matters</h1>
+      <h2 className={styles.missionTitle}>Our Mission Matters</h2>
 
       <div className={styles.missionContainer}>
         <div className={styles.missionLeft}>

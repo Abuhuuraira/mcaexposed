@@ -17,7 +17,7 @@ function AwarenessSection() {
 
   return (
     <section className={styles.awarenessSection}>
-      <h1 className={styles.awarenessTitle}>MCA Awareness</h1>
+      <h2 className={styles.awarenessTitle}>MCA Awareness</h2>
 
       <div className={styles.awarenessGrid}>
         {awarenessPosts.map((post) => (

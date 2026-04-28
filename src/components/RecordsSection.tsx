@@ -17,7 +17,7 @@ function RecordsSection() {
 
   return (
     <section className={styles.recordsSection}>
-      <h1 className={styles.recordsTitle}>The Records</h1>
+      <h2 className={styles.recordsTitle}>The Records</h2>
 
       <p className={styles.recordsSubtext}>
         These articles tell the story, from the start, of what MCA Exposed is doing.

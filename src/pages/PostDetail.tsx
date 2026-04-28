@@ -238,11 +238,11 @@ function PostDetail() {
         <div className={styles.contentContainer}>
           {isLoading ? (
             <div className={styles.postCard}>
-              <h1>Loading post...</h1>
+              <h2>Loading post...</h2>
             </div>
           ) : !post ? (
             <div className={styles.postCard}>
-              <h1>Post not found</h1>
+              <h2>Post not found</h2>
               <p>The post you requested does not exist.</p>
               <Link to="/the-records" className={styles.backLink}>
                 Back to Records
