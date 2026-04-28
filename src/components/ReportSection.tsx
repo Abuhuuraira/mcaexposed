@@ -10,7 +10,7 @@ function ReportSection() {
         <h3 className={styles.subtitle}>
           Have you or someone you know been <br />
           a victim of MCA fraud?
-        </h2>
+        </h3>
 
         <p className={styles.description}>
           We are collecting stories from small business owners who were misled,

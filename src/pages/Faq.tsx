@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
 import FooterSection from '../components/FooterSection'
 import { SEO } from '../components/SEO'
 import styles from './Faq.module.css'
@@ -215,6 +216,10 @@ function Faq() {
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>MCA Frequently Asked Questions - Legal Guide</h1>
+
+          <p>
+            Merchant Cash Advances (MCAs) can be complex, especially when it comes to legal terms and repayment structures. <Link to="/">MCA.Exposed</Link> helps break down common questions and highlights key legal insights so you can better understand risks and make informed decisions.
+          </p>
 
           <div className={styles.faqContainer}>
             {faqData.map((item, index) => (
