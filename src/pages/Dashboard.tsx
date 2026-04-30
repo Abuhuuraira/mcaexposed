@@ -96,6 +96,93 @@ const linkifyText = (value: string) =>
     (url) => `<a href="${url}" target="_blank" rel="noreferrer">${url}</a>`,
   )
 
+// Color conversion utilities
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null
+}
+
+const rgbToHex = (r: number, g: number, b: number): string => {
+  return (
+    '#' +
+    [r, g, b]
+      .map((x) => {
+        const hex = x.toString(16)
+        return hex.length === 1 ? '0' + hex : hex
+      })
+      .join('')
+      .toUpperCase()
+  )
+}
+
+const rgbToHsl = (r: number, g: number, b: number): { h: number; s: number; l: number } => {
+  r /= 255
+  g /= 255
+  b /= 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  let h = 0
+  let s = 0
+  const l = (max + min) / 2
+
+  if (max !== min) {
+    const d = max - min
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    switch (max) {
+      case r:
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+        break
+      case g:
+        h = ((b - r) / d + 2) / 6
+        break
+      case b:
+        h = ((r - g) / d + 4) / 6
+        break
+    }
+  }
+
+  return { h: h * 360, s: s * 100, l: l * 100 }
+}
+
+const hslToRgb = (h: number, s: number, l: number): { r: number; g: number; b: number } => {
+  h = h / 360
+  s = s / 100
+  l = l / 100
+
+  let r, g, b
+
+  if (s === 0) {
+    r = g = b = l
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1
+      if (t > 1) t -= 1
+      if (t < 1 / 6) return p + (q - p) * 6 * t
+      if (t < 1 / 2) return q
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+      return p
+    }
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    r = hue2rgb(p, q, h + 1 / 3)
+    g = hue2rgb(p, q, h)
+    b = hue2rgb(p, q, h - 1 / 3)
+  }
+
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255),
+  }
+}
+
 const isLikelyHeading = (line: string, blockIndex: number) => {
   if (/^#{1,3}\s+/.test(line)) {
     return true
@@ -216,7 +303,11 @@ function Dashboard() {
   const [activeSection, setActiveSection] = useState<'posts' | 'newsletter' | 'seo'>('posts')
   const [showFontPicker, setShowFontPicker] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [selectedColor, setSelectedColor] = useState('#000000')
+  const [selectedColor, setSelectedColor] = useState('#39ff14')
+  const [colorHue, setColorHue] = useState(120)
+  const [colorSaturation, setColorSaturation] = useState(100)
+  const [colorBrightness, setColorBrightness] = useState(50)
+  const [colorAlpha, setColorAlpha] = useState(100)
   const formRef = useRef(form)
   const pendingImageUploadRef = useRef<Promise<void> | null>(null)
   const contentInputRef = useRef<HTMLDivElement | null>(null)
@@ -549,6 +640,73 @@ function Dashboard() {
     setSelectedColor(color)
     setShowColorPicker(false)
     contentInputRef.current?.focus()
+  }
+
+  const handleColorGradientClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    const saturation = (x / rect.width) * 100
+    const brightness = 100 - (y / rect.height) * 100
+
+    setColorSaturation(saturation)
+    setColorBrightness(brightness)
+
+    const rgb = hslToRgb(colorHue, saturation, brightness)
+    const hex = rgbToHex(rgb.r, rgb.g, rgb.b)
+    setSelectedColor(hex)
+  }
+
+  const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hue = parseFloat(e.target.value)
+    setColorHue(hue)
+
+    const rgb = hslToRgb(hue, colorSaturation, colorBrightness)
+    const hex = rgbToHex(rgb.r, rgb.g, rgb.b)
+    setSelectedColor(hex)
+  }
+
+  const handleColorHexInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const hex = e.target.value
+    // Allow typing without immediate validation, just update display
+    setSelectedColor(hex)
+  }
+
+  const applyHexColor = (hexValue: string) => {
+    let cleanHex = hexValue.trim().toUpperCase()
+    
+    // Remove # if present
+    if (cleanHex.startsWith('#')) {
+      cleanHex = cleanHex.slice(1)
+    }
+    
+    // Convert 3-char hex to 6-char hex
+    if (cleanHex.length === 3) {
+      cleanHex = cleanHex
+        .split('')
+        .map((char) => char + char)
+        .join('')
+    }
+    
+    // Validate hex format
+    if (!/^[0-9A-F]{6}$/.test(cleanHex)) {
+      setMessage('Invalid hex code. Please use format: #RRGGBB or RRGGBB')
+      return
+    }
+    
+    const fullHex = '#' + cleanHex
+    setSelectedColor(fullHex)
+    
+    const rgb = hexToRgb(fullHex)
+    if (rgb) {
+      const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+      setColorHue(hsl.h)
+      setColorSaturation(hsl.s)
+      setColorBrightness(hsl.l)
+    }
+    
+    setMessage(`Color updated: ${fullHex}`)
   }
 
   const waitForPendingImageUpload = async () => {
@@ -900,23 +1058,105 @@ function Dashboard() {
                       <div className={styles.toolGroup} style={{ position: 'relative' }}>
                         <div style={{ position: 'relative' }}>
                           <button type="button" className={styles.toolBtn} onClick={() => setShowColorPicker(!showColorPicker)} title="Text Color" aria-label="Text Color">
+                            <span
+                              className={styles.colorIndicator}
+                              style={{ backgroundColor: selectedColor }}
+                            ></span>
                             🎨 Color
                           </button>
                           {showColorPicker && (
-                            <div className={styles.pickerDropdown} style={{ top: '100%', left: 0, marginTop: '0.4rem' }}>
-                              <div className={styles.colorPickerDropdown}>
-                                <input
-                                  type="color"
-                                  value={selectedColor}
-                                  onChange={(e) => {
-                                    setSelectedColor(e.target.value)
-                                    handleApplyColor(e.target.value)
+                            <div className={styles.modernColorPickerContainer}>
+                              <div className={styles.modernColorPicker}>
+                                {/* Gradient Selector */}
+                                <div
+                                  className={styles.colorGradient}
+                                  style={{
+                                    background: `linear-gradient(to right, rgb(255, 255, 255), hsl(${colorHue}, 100%, 50%))`,
                                   }}
-                                  className={styles.colorInputDropdown}
-                                  autoFocus
-                                />
-                                <div className={styles.colorPreviewDropdown} style={{ backgroundColor: selectedColor }}></div>
-                                <p className={styles.colorValueDropdown}>{selectedColor}</p>
+                                  onClick={handleColorGradientClick}
+                                >
+                                  <div
+                                    className={styles.colorSelector}
+                                    style={{
+                                      left: `${colorSaturation}%`,
+                                      top: `${100 - colorBrightness}%`,
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Hue Slider */}
+                                <div className={styles.colorSliderContainer}>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="360"
+                                    value={colorHue}
+                                    onChange={handleHueChange}
+                                    className={styles.hueSlider}
+                                  />
+                                </div>
+
+                                {/* Controls Section */}
+                                <div className={styles.colorControls}>
+                                  <div className={styles.colorInputRow}>
+                                    <label>
+                                      Hex Code
+                                      <div className={styles.hexInputWrapper}>
+                                        <input
+                                          type="text"
+                                          value={selectedColor}
+                                          onChange={handleColorHexInput}
+                                          placeholder="#000000 or 000000"
+                                          className={styles.hexInput}
+                                          maxLength={7}
+                                        />
+                                        <button
+                                          type="button"
+                                          className={styles.applyHexBtn}
+                                          onClick={() => applyHexColor(selectedColor)}
+                                          title="Apply hex color"
+                                        >
+                                          ✓
+                                        </button>
+                                      </div>
+                                    </label>
+                                  </div>
+
+                                  <div className={styles.colorPresetSection}>
+                                    <p className={styles.presetLabel}>Quick Colors</p>
+                                    <div className={styles.colorPresetGrid}>
+                                      {['#000000', '#FFFFFF', '#39ff14', '#FF0000', '#0000FF', '#FFFF00', '#FFA500', '#800080'].map(
+                                        (color) => (
+                                          <button
+                                            key={color}
+                                            type="button"
+                                            className={styles.presetColor}
+                                            style={{ backgroundColor: color }}
+                                            onClick={() => {
+                                              const rgb = hexToRgb(color)
+                                              if (rgb) {
+                                                const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+                                                setColorHue(hsl.h)
+                                                setColorSaturation(hsl.s)
+                                                setColorBrightness(hsl.l)
+                                              }
+                                              setSelectedColor(color)
+                                            }}
+                                            title={`Select ${color}`}
+                                          />
+                                        ),
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    className={styles.applyColorBtn}
+                                    onClick={() => handleApplyColor(selectedColor)}
+                                  >
+                                    Apply Color
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -926,20 +1166,68 @@ function Dashboard() {
                             ✎ Font
                           </button>
                           {showFontPicker && (
-                            <div className={styles.pickerDropdown} style={{ top: '100%', left: 0, marginTop: '0.4rem' }}>
+                            <div className={styles.pickerDropdown} style={{ top: '100%', left: 0, marginTop: '0.4rem', zIndex: 1000 }}>
                               <div className={styles.fontPickerDropdown}>
-                                {['Arial', 'Helvetica', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana'].map((font) => (
-                                  <button
-                                    key={font}
-                                    type="button"
-                                    className={styles.fontOptionDropdown}
-                                    style={{ fontFamily: font }}
-                                    onClick={() => handleApplyFont(font)}
-                                    title={`Select ${font}`}
-                                  >
-                                    {font}
-                                  </button>
-                                ))}
+                                <div className={styles.fontCategory}>
+                                  <p className={styles.fontCategoryLabel}>Sans-Serif</p>
+                                  {['Arial', 'Helvetica', 'Trebuchet MS', 'Verdana', 'Calibri', 'Segoe UI', 'Roboto', 'Source Sans Pro', 'Open Sans', 'Tahoma', 'Lucida Grande'].map((font) => (
+                                    <button
+                                      key={font}
+                                      type="button"
+                                      className={styles.fontOptionDropdown}
+                                      style={{ fontFamily: font }}
+                                      onClick={() => handleApplyFont(font)}
+                                      title={`Select ${font}`}
+                                    >
+                                      {font}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className={styles.fontCategory}>
+                                  <p className={styles.fontCategoryLabel}>Serif</p>
+                                  {['Georgia', 'Times New Roman', 'Garamond', 'Cambria', 'Droid Serif', 'Palatino', 'Book Antiqua', 'Courier'].map((font) => (
+                                    <button
+                                      key={font}
+                                      type="button"
+                                      className={styles.fontOptionDropdown}
+                                      style={{ fontFamily: font }}
+                                      onClick={() => handleApplyFont(font)}
+                                      title={`Select ${font}`}
+                                    >
+                                      {font}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className={styles.fontCategory}>
+                                  <p className={styles.fontCategoryLabel}>Monospace</p>
+                                  {['Courier New', 'Monaco', 'Consolas', 'Ubuntu Mono', 'Menlo', 'Inconsolata'].map((font) => (
+                                    <button
+                                      key={font}
+                                      type="button"
+                                      className={styles.fontOptionDropdown}
+                                      style={{ fontFamily: font }}
+                                      onClick={() => handleApplyFont(font)}
+                                      title={`Select ${font}`}
+                                    >
+                                      {font}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className={styles.fontCategory}>
+                                  <p className={styles.fontCategoryLabel}>Script & Display</p>
+                                  {['Comic Sans MS', 'Brush Script MT', 'Cursive', 'Lucida Calligraphy', 'Lucida Handwriting', 'Edwardian Script ITC'].map((font) => (
+                                    <button
+                                      key={font}
+                                      type="button"
+                                      className={styles.fontOptionDropdown}
+                                      style={{ fontFamily: font }}
+                                      onClick={() => handleApplyFont(font)}
+                                      title={`Select ${font}`}
+                                    >
+                                      {font}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           )}

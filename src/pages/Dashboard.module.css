@@ -950,58 +950,291 @@
   }
 }
 
-.colorPickerDropdown {
+/* Modern Color Picker Styles (Figma-like) */
+.colorIndicator {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  margin-right: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  vertical-align: middle;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.modernColorPickerContainer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.4rem;
+  z-index: 1000;
+  animation: dropdownSlideIn 0.2s ease;
+}
+
+.modernColorPicker {
+  background: #1a1a1a;
+  border: 1px solid #2c2c2c;
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  width: 280px;
+}
+
+.colorGradient {
+  width: 100%;
+  height: 200px;
+  border-radius: 8px;
+  border: 1px solid #3a3a3a;
+  background: linear-gradient(to right, rgb(255, 255, 255), hsl(0, 100%, 50%));
+  cursor: crosshair;
+  position: relative;
+  margin-bottom: 0.8rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  background-image:
+    linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.5)),
+    linear-gradient(to right, rgb(255, 255, 255), hsl(0, 100%, 50%));
+  background-size: 100% 100%, 100% 100%;
+  background-position: 0 0, 0 0;
+}
+
+.colorSelector {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 1px #000, 0 0 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.colorSliderContainer {
+  width: 100%;
+  margin-bottom: 0.8rem;
+}
+
+.hueSlider {
+  width: 100%;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #3a3a3a;
+  background: linear-gradient(
+    to right,
+    #ff0000,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+}
+
+.hueSlider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 24px;
+  border-radius: 3px;
+  background: white;
+  border: 1px solid #000;
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.hueSlider::-moz-range-thumb {
+  width: 14px;
+  height: 24px;
+  border-radius: 3px;
+  background: white;
+  border: 1px solid #000;
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.colorControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.colorInputRow {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.colorInputRow label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+  color: #9b9b9b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.hexInputWrapper {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.hexInput {
+  background: #0f0f0f;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: #fff;
+  padding: 0.5rem 0.6rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: border-color 0.15s ease;
+  flex: 1;
+}
+
+.hexInput:focus {
+  outline: none;
+  border-color: #39ff14;
+  box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.15);
+}
+
+.applyHexBtn {
+  background: linear-gradient(135deg, #39ff14, #70ff54);
+  color: #000;
+  border: 0;
+  border-radius: 3px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.applyHexBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(57, 255, 20, 0.3);
+}
+
+.applyHexBtn:active {
+  transform: scale(0.95);
+}
+
+.colorPresetSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.presetLabel {
+  margin: 0;
+  color: #9b9b9b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.colorPresetGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.presetColor {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.presetColor:hover {
+  border-color: #39ff14;
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
+}
+
+.applyColorBtn {
+  background: linear-gradient(135deg, #39ff14, #70ff54);
+  color: #000;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.6rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.applyColorBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(57, 255, 20, 0.2);
+}
+
+.applyColorBtn:active {
+  transform: translateY(0);
+}
+
+/* Font Picker Styles */
+.fontPickerDropdown {
   background: #1a1a1a;
   border: 2px solid #39ff14;
   border-radius: 8px;
   padding: 0.8rem;
   box-shadow: 0 8px 24px rgba(57, 255, 20, 0.25);
   display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  min-width: fit-content;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 200px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-.colorInputDropdown {
-  width: 55px;
-  height: 55px;
-  border: 2px solid rgba(57, 255, 20, 0.5);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
+.fontPickerDropdown::-webkit-scrollbar {
+  width: 6px;
 }
 
-.colorInputDropdown:hover {
-  border-color: #39ff14;
+.fontPickerDropdown::-webkit-scrollbar-track {
+  background: rgba(57, 255, 20, 0.05);
+  border-radius: 3px;
 }
 
-.colorPreviewDropdown {
-  width: 70px;
-  height: 55px;
-  border: 1px solid rgba(57, 255, 20, 0.3);
-  border-radius: 4px;
-  transition: all 0.2s ease;
+.fontPickerDropdown::-webkit-scrollbar-thumb {
+  background: rgba(57, 255, 20, 0.3);
+  border-radius: 3px;
 }
 
-.colorValueDropdown {
-  margin: 0;
-  color: #d1d1d1;
-  font-size: 0.85rem;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
-  min-width: 70px;
+.fontPickerDropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(57, 255, 20, 0.5);
 }
 
-.fontPickerDropdown {
-  background: #1a1a1a;
-  border: 2px solid #39ff14;
-  border-radius: 8px;
-  padding: 0.6rem;
-  box-shadow: 0 8px 24px rgba(57, 255, 20, 0.25);
+.fontCategory {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  min-width: 160px;
+}
+
+.fontCategoryLabel {
+  margin: 0;
+  color: #39ff14;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(57, 255, 20, 0.2);
 }
 
 .fontOptionDropdown {
