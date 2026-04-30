@@ -307,7 +307,6 @@ function Dashboard() {
   const [colorHue, setColorHue] = useState(120)
   const [colorSaturation, setColorSaturation] = useState(100)
   const [colorBrightness, setColorBrightness] = useState(50)
-  const [colorAlpha, setColorAlpha] = useState(100)
   const formRef = useRef(form)
   const pendingImageUploadRef = useRef<Promise<void> | null>(null)
   const contentInputRef = useRef<HTMLDivElement | null>(null)
@@ -520,6 +519,47 @@ function Dashboard() {
     syncContentFromEditor()
   }
 
+  const handleFormatHeading = (tag: 'h1' | 'h2' | 'h3' | 'h4' | 'p') => {
+    focusEditor()
+    const selection = window.getSelection()
+    
+    if (!selection || selection.toString().length === 0) {
+      setMessage(`Please select text before applying ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting`)
+      return
+    }
+
+    const selectedText = selection.toString()
+    
+    if (tag === 'p') {
+      // Remove formatting from selected text
+      document.execCommand('removeFormat', false, undefined)
+    } else {
+      // Create heading-styled HTML for selected text
+      const headingStyles = {
+        h1: 'font-size: 2em; font-weight: bold;',
+        h2: 'font-size: 1.5em; font-weight: bold;',
+        h3: 'font-size: 1.17em; font-weight: bold;',
+        h4: 'font-size: 1em; font-weight: bold;',
+      }
+      
+      const escapedText = selectedText
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+      
+      const headingHTML = `<span style="${headingStyles[tag]}" data-heading-type="${tag}">${escapedText}</span>`
+      
+      // Use insertHTML which supports undo/redo
+      document.execCommand('insertHTML', false, headingHTML)
+    }
+    
+    syncContentFromEditor()
+    contentInputRef.current?.focus()
+    setMessage(`Applied ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting to selected text only`)
+  }
+
   const insertInlineDownloadLink = () => {
     if (!inlineFileData || !inlineFileName) {
       setMessage('Upload a file first, then insert it into content.')
@@ -557,32 +597,32 @@ function Dashboard() {
     }
 
     if (action === 'h1') {
-      runCommand('formatBlock', 'h1')
+      handleFormatHeading('h1')
       return
     }
 
     if (action === 'h2') {
-      runCommand('formatBlock', 'h2')
+      handleFormatHeading('h2')
       return
     }
 
     if (action === 'h3') {
-      runCommand('formatBlock', 'h3')
+      handleFormatHeading('h3')
       return
     }
 
     if (action === 'h4') {
-      runCommand('formatBlock', 'h4')
+      handleFormatHeading('h4')
       return
     }
 
     if (action === 'p') {
-      runCommand('formatBlock', 'p')
+      handleFormatHeading('p')
       return
     }
 
     if (action === 'heading') {
-      runCommand('formatBlock', 'h2')
+      handleFormatHeading('h2')
       return
     }
 
@@ -942,6 +982,7 @@ function Dashboard() {
             <button
               className={`${styles.tabBtn} ${activeSection === 'seo' ? styles.tabActive : ''}`}
               onClick={() => setActiveSection('seo')}
+              style={{ display: 'none' }}
             >
               SEO Settings
             </button>
@@ -1269,6 +1310,7 @@ function Dashboard() {
                       onInput={syncContentFromEditor}
                       onPaste={handleEditorPaste}
                       onBlur={smartFormatEditorIfNeeded}
+                      onClick={() => contentInputRef.current?.focus()}
                       suppressContentEditableWarning
                     ></div>
                     <span className={styles.editorHint}>
