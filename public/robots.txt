@@ -2,5 +2,5 @@ User-agent: *
 Disallow: /admin/
 Disallow: /private/
 
-Sitemap: https://mca.exposed/sitemap.xml 
+Sitemap: https://mca-exposed/sitemap.xml 
 
