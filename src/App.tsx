@@ -14,6 +14,8 @@ import Records from './pages/Records'
 import Dashboard from './pages/Dashboard'
 import PostDetail from './pages/PostDetail'
 import Login from './pages/Login'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import AccessibilityStatement from './pages/AccessibilityStatement'
 import './App.css'
 
 function App() {
@@ -43,6 +45,8 @@ function App() {
               <Route path="/report-mca-fraud" element={<Report />} />
               <Route path="/mca-frequently-asked-questions-legal-guide" element={<Faq />} />
               <Route path="/about" element={<About />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/accessibility-statement" element={<AccessibilityStatement />} />
             </Routes>
           </main>
         </BrowserRouter>

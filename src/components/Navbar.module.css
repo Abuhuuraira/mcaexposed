@@ -101,17 +101,17 @@
 /* SEARCH STYLES */
 .searchContainer {
   position: relative;
-  width: 200px;
+  width: 110px;
 }
 
 .searchInput {
   width: 100%;
-  padding: 8px 12px;
+  padding: 4px 8px;
   border: 1px solid #2ecc71;
-  border-radius: 8px;
+  border-radius: 6px;
   background-color: #0a0a0a;
   color: #fff;
-  font-size: 14px;
+  font-size: 11px;
   outline: none;
   transition: border-color 0.3s;
 }

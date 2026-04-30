@@ -1,0 +1,169 @@
+.pageWrap {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  background: #050505;
+  color: #fff;
+}
+
+.contentContainer {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.heroSection {
+  padding: 3.5rem 0 2.6rem;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(57, 255, 20, 0.16), transparent 40%),
+    radial-gradient(circle at 90% 8%, rgba(57, 255, 20, 0.08), transparent 34%),
+    #050505;
+  border-bottom: 1px solid rgba(57, 255, 20, 0.1);
+}
+
+.heroSection h1 {
+  margin: 0;
+  color: #39ff14;
+  letter-spacing: -0.02em;
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
+  line-height: 1.1;
+}
+
+.effectiveDate {
+  margin: 0.8rem 0 0;
+  color: #a8a8a8;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.mainContent {
+  padding: 3rem 0;
+}
+
+.statementContent {
+  display: grid;
+  gap: 2rem;
+}
+
+.introduction {
+  padding: 1.5rem;
+  background: rgba(57, 255, 20, 0.05);
+  border-left: 4px solid #39ff14;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.introduction p {
+  margin: 0;
+  color: #d1d1d1;
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.statementSection {
+  display: grid;
+  gap: 1rem;
+}
+
+.statementSection h2 {
+  margin: 0;
+  color: #39ff14;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.statementSection > p {
+  color: #c1c1c1;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.statementSection ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.statementSection li {
+  color: #b8b8b8;
+  line-height: 1.6;
+  padding-left: 1.5rem;
+  position: relative;
+  font-size: 0.95rem;
+}
+
+.statementSection li:before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #39ff14;
+  font-weight: bold;
+}
+
+.statementSection strong {
+  color: #39ff14;
+  font-weight: 600;
+}
+
+.contactSection {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(57, 255, 20, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(57, 255, 20, 0.15);
+}
+
+.contactSection h2 {
+  margin: 0;
+  color: #39ff14;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.contactSection p {
+  margin: 0;
+  color: #b8b8b8;
+  line-height: 1.6;
+}
+
+.divider {
+  height: 2px;
+  width: calc(100vw - 3rem);
+  margin: 2rem auto;
+  background: #39ff14;
+}
+
+@media (max-width: 768px) {
+  .heroSection {
+    padding: 2.5rem 0 1.8rem;
+  }
+
+  .heroSection h1 {
+    font-size: 2rem;
+  }
+
+  .mainContent {
+    padding: 2rem 0;
+  }
+
+  .statementSection h2 {
+    font-size: 1.2rem;
+  }
+
+  .statementSection li {
+    font-size: 0.9rem;
+  }
+
+  .introduction {
+    padding: 1rem;
+  }
+
+  .contactSection {
+    padding: 1rem;
+  }
+}

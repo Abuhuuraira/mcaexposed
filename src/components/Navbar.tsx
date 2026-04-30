@@ -6,7 +6,7 @@ import { defaultPosts } from '../data/posts'
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [showSearchResults, setShowSearchResults] = useState(false)
+  const [showSearchModal, setShowSearchModal] = useState(false)
   const navigate = useNavigate()
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev)
@@ -24,13 +24,12 @@ const Navbar = () => {
   const handleSearchClick = (postSlug: string) => {
     navigate(`/post/${postSlug}`)
     setSearchQuery('')
-    setShowSearchResults(false)
+    setShowSearchModal(false)
     closeMenu()
   }
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
-    setShowSearchResults(true)
   }
 
   return (
@@ -111,16 +110,34 @@ const Navbar = () => {
           >
             FAQ&apos;s
           </NavLink>
+          <NavLink
+            to="/privacy-policy"
+            className={({ isActive }) =>
+              `${styles['nav-btn']} ${isActive ? styles.active : ''}`
+            }
+            onClick={closeMenu}
+          >
+            Privacy Policy
+          </NavLink>
+          <NavLink
+            to="/accessibility-statement"
+            className={({ isActive }) =>
+              `${styles['nav-btn']} ${isActive ? styles.active : ''}`
+            }
+            onClick={closeMenu}
+          >
+            Accessibility
+          </NavLink>
           <div className={styles.searchContainer}>
             <input
               type="text"
               placeholder="Search posts..."
               value={searchQuery}
               onChange={handleSearch}
-              onFocus={() => setShowSearchResults(true)}
+              onFocus={() => setShowSearchModal(true)}
               className={styles.searchInput}
             />
-            {showSearchResults && searchQuery.trim() && (
+            {showSearchModal && searchQuery.trim() && (
               <div className={styles.searchResults}>
                 {searchResults.length > 0 ? (
                   searchResults.map((post) => (
