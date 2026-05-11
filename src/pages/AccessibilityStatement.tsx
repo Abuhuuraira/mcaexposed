@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { Helmet } from 'react-helmet-async'
 import styles from './AccessibilityStatement.module.css'
+import { SEO } from '../components/SEO'
 import FooterSection from '../components/FooterSection'
 
 const AccessibilityStatement = () => {
@@ -10,10 +10,7 @@ const AccessibilityStatement = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Accessibility Statement - MCA Exposed</title>
-        <meta name="description" content="Accessibility Statement for MCA Exposed. We are committed to making our website accessible to everyone." />
-      </Helmet>
+      <SEO path="/accessibility-statement" />
 
       <div className={styles.pageWrap}>
         <section className={styles.heroSection}>

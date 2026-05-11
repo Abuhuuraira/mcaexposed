@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { Helmet } from 'react-helmet-async'
 import styles from './PrivacyPolicy.module.css'
+import { SEO } from '../components/SEO'
 import FooterSection from '../components/FooterSection'
 
 const PrivacyPolicy = () => {
@@ -10,10 +10,7 @@ const PrivacyPolicy = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Privacy Policy - MCA Exposed</title>
-        <meta name="description" content="Privacy Policy for MCA Exposed. Learn how we collect, use, and protect your information." />
-      </Helmet>
+      <SEO path="/privacy-policy" />
 
       <div className={styles.pageWrap}>
         <section className={styles.heroSection}>

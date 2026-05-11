@@ -27,7 +27,7 @@ const queryToCategory: Record<string, FilterOption> = {
 const normalizeCategory = (value: string) => value.trim().toLowerCase()
 
 function Records() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const { category: categoryFromPath } = useParams()
   const [allPosts, setAllPosts] = useState<Post[]>([])
   
@@ -65,6 +65,11 @@ function Records() {
     }
   }
 
+  // Determine SEO path based on active filter
+  const seoPath = categoryFromPath 
+    ? `/the-records/${categoryFromPath}`
+    : '/the-records'
+
   useEffect(() => {
     void refreshPosts()
   }, [searchParams])
@@ -93,7 +98,7 @@ function Records() {
 
   return (
     <div className={styles.pageWrap}>
-      <SEO path="/the-records" />
+      <SEO path={seoPath} />
       <section className={styles.heroSection}>
         <div className={styles.contentContainer}>
           <h1>All Posts</h1>

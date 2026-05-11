@@ -26,6 +26,7 @@ export function SEO({ path }: SEOProps) {
       <title>{seo.title}</title>
       <meta name="description" content={seo.description} />
       <link rel="canonical" href={seo.canonicalUrl} />
+      {seo.noindex && <meta name="robots" content="noindex" />}
     </Helmet>
   )
 }

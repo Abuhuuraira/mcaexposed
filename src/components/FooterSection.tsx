@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import styles from './FooterSection.module.css'
 
 function FooterSection() {
@@ -63,8 +64,8 @@ function FooterSection() {
           <a href="https://mail.google.com/mail/?view=cm&fs=1&to=Contact@MCAExposed.com" target="_blank" rel="noopener noreferrer">
             Email Us: Contact@MCAExposed.com
           </a>
-          <a href="#">Accessibility Statement</a>
-          <a href="#">Privacy Policy</a>
+          <Link to="/accessibility-statement">Accessibility Statement</Link>
+          <Link to="/privacy-policy">Privacy Policy</Link>
           <a
             href="https://www.linkedin.com/company/mca-exposed"
             target="_blank"

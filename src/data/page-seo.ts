@@ -5,6 +5,7 @@ export type PageSEO = {
   description: string
   canonicalUrl: string
   type: 'page' | 'post'
+  noindex?: boolean
 }
 
 const API_BASE = '/api/page-seo'
@@ -15,7 +16,7 @@ export const defaultPageSEO: PageSEO[] = [
     path: '/',
     title: 'Merchant Cash Advance Scams (MCA Scam)​ | MCA Exposed',
     description: 'We reveals merchant cash advance scams (MCA scam) through lawsuits and real stories, exposing companies like Supervest to protect small businesses',
-    canonicalUrl: 'https://mca.exposed/',
+    canonicalUrl: 'https://mca.exposed',
     type: 'page',
   },
   {
@@ -51,6 +52,22 @@ export const defaultPageSEO: PageSEO[] = [
     type: 'page',
   },
   {
+    id: 'records-fraud-files',
+    path: '/the-records/the-fraud-files',
+    title: 'The Fraud Files | MCA Exposed',
+    description: 'The Fraud Files - A collection of documented cases and allegations of MCA fraud, lawsuits, and litigation against fraudulent companies.',
+    canonicalUrl: 'https://mca.exposed/the-records/the-fraud-files',
+    type: 'page',
+  },
+  {
+    id: 'records-mca-awareness',
+    path: '/the-records/mca-awareness',
+    title: 'MCA Awareness | MCA Exposed',
+    description: 'MCA Awareness - Educational articles and resources to help small business owners understand merchant cash advance scams and fraud.',
+    canonicalUrl: 'https://mca.exposed/the-records/mca-awareness',
+    type: 'page',
+  },
+  {
     id: 'report',
     path: '/report-mca-fraud',
     title: 'Make a MCA Fraud Report | Mca Expose',
@@ -65,6 +82,33 @@ export const defaultPageSEO: PageSEO[] = [
     description: 'Learn the story behind MCA Exposed. Founder shares how his small business was targeted by MCA fraud and why he is fighting back to protect others ',
     canonicalUrl: 'https://mca.exposed/the-story',
     type: 'page',
+  },
+  {
+    id: 'privacy-policy',
+    path: '/privacy-policy',
+    title: 'Privacy Policy - MCA Exposed',
+    description: 'Privacy Policy for MCA Exposed. Learn how we collect, use, and protect your information.',
+    canonicalUrl: 'https://mca.exposed/privacy-policy',
+    type: 'page',
+    noindex: true,
+  },
+  {
+    id: 'accessibility-statement',
+    path: '/accessibility-statement',
+    title: 'Accessibility Statement - MCA Exposed',
+    description: 'Accessibility Statement for MCA Exposed. We are committed to making our website accessible to everyone.',
+    canonicalUrl: 'https://mca.exposed/accessibility-statement',
+    type: 'page',
+    noindex: true,
+  },
+  {
+    id: 'search',
+    path: '/search',
+    title: 'Search Posts - MCA Exposed',
+    description: 'Search posts and articles on MCA Exposed to find information about merchant cash advance fraud.',
+    canonicalUrl: 'https://mca.exposed/search',
+    type: 'page',
+    noindex: true,
   },
 ]
 

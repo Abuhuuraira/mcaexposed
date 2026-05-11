@@ -110,24 +110,6 @@ const Navbar = () => {
           >
             FAQ&apos;s
           </NavLink>
-          <NavLink
-            to="/privacy-policy"
-            className={({ isActive }) =>
-              `${styles['nav-btn']} ${isActive ? styles.active : ''}`
-            }
-            onClick={closeMenu}
-          >
-            Privacy Policy
-          </NavLink>
-          <NavLink
-            to="/accessibility-statement"
-            className={({ isActive }) =>
-              `${styles['nav-btn']} ${isActive ? styles.active : ''}`
-            }
-            onClick={closeMenu}
-          >
-            Accessibility
-          </NavLink>
           <div className={styles.searchContainer}>
             <input
               type="text"
