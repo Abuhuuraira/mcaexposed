@@ -522,14 +522,14 @@ function Dashboard() {
   const handleFormatHeading = (tag: 'h1' | 'h2' | 'h3' | 'h4' | 'p') => {
     focusEditor()
     const selection = window.getSelection()
-    
+
     if (!selection || selection.toString().length === 0) {
       setMessage(`Please select text before applying ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting`)
       return
     }
 
     const selectedText = selection.toString()
-    
+
     if (tag === 'p') {
       // Remove formatting from selected text
       document.execCommand('removeFormat', false, undefined)
@@ -541,20 +541,20 @@ function Dashboard() {
         h3: 'font-size: 1.17em; font-weight: bold;',
         h4: 'font-size: 1em; font-weight: bold;',
       }
-      
+
       const escapedText = selectedText
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
-      
+
       const headingHTML = `<span style="${headingStyles[tag]}" data-heading-type="${tag}">${escapedText}</span>`
-      
+
       // Use insertHTML which supports undo/redo
       document.execCommand('insertHTML', false, headingHTML)
     }
-    
+
     syncContentFromEditor()
     contentInputRef.current?.focus()
     setMessage(`Applied ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting to selected text only`)

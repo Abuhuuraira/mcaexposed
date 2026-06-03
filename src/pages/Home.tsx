@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import styles from './Home.module.css'
 import MissionSection from '../components/MissionSection'
 import RecordsSection from '../components/RecordsSection'
@@ -42,22 +41,6 @@ function Home() {
             {!isComplete && <span className={styles.cursor}>|</span>}
           </p>
 
-          {/* Internal Navigation Links for SEO */}
-          <div style={{ 
-            marginTop: '30px', 
-            display: 'flex', 
-            gap: '20px', 
-            justifyContent: 'center', 
-            flexWrap: 'wrap',
-            fontSize: '14px'
-          }}>
-            <Link to="/the-records" style={{ color: '#fff', textDecoration: 'underline' }}>View Records</Link>
-            <Link to="/the-courts" style={{ color: '#fff', textDecoration: 'underline' }}>The Courts</Link>
-            <Link to="/the-story" style={{ color: '#fff', textDecoration: 'underline' }}>Our Story</Link>
-            <Link to="/report-mca-fraud" style={{ color: '#fff', textDecoration: 'underline' }}>Make a Report</Link>
-            <Link to="/mca-frequently-asked-questions-legal-guide" style={{ color: '#fff', textDecoration: 'underline' }}>FAQ</Link>
-            <Link to="/about" style={{ color: '#fff', textDecoration: 'underline' }}>About</Link>
-          </div>
         </div>
       </section>
 
