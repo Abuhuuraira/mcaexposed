@@ -1,6 +1,10 @@
+# Allow all crawlers (Googlebot, Bingbot, GPTBot/OpenAI, and other AI bots) full access.
 User-agent: *
-Disallow: /admin/
-Disallow: /private/
+Allow: /
 
-Sitemap: https://mca-exposed/sitemap.xml 
+# Block private/admin areas only.
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /login
 
+Sitemap: https://mca.exposed/sitemap.xml
