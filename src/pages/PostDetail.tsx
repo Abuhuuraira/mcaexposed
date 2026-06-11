@@ -5,7 +5,7 @@ import { SEO } from '../components/SEO'
 import { findPostBySlug, type Post } from '../data/posts'
 import styles from './PostDetail.module.css'
 
-const allowedTags = new Set(['A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I', 'H2', 'H3', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'DIV'])
+const allowedTags = new Set(['A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'DIV'])
 
 const sanitizeHtml = (rawHtml: string): string => {
   if (!rawHtml.trim()) {

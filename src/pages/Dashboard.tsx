@@ -260,8 +260,84 @@ const smartFormatPlainText = (rawText: string): string => {
 const shouldSmartFormatEditorHtml = (rawHtml: string): boolean =>
   !/<(h[1-6]|p|ul|ol|li|blockquote|a|strong|b|em|i)\b/i.test(rawHtml)
 
-const needsContentNormalization = (rawHtml: string): boolean =>
-  /<(div|span|font|section|article|header|footer|table|tbody|tr|td|th|figure|figcaption|h1|h4|h5|h6)\b/i.test(rawHtml)
+// Tags we keep as-is when saving editor HTML. Everything else (span, font,
+// section, table, etc.) is unwrapped so only its text/children remain.
+const ALLOWED_STORAGE_TAGS = new Set([
+  'A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I',
+  'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE',
+])
+const BLOCK_STORAGE_TAGS = ['P', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'DIV']
+const LINK_ATTRS = ['href', 'target', 'rel', 'download']
+
+// Cleans editor HTML for storage WITHOUT flattening structure: it preserves
+// block boundaries (headings, paragraphs, lists) while stripping styling spans
+// and other unsupported markup. This is what keeps an applied <h2> an <h2>
+// instead of collapsing the whole post into a single paragraph.
+const cleanEditorHtml = (rawHtml: string): string => {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(rawHtml, 'text/html')
+
+  // Convert legacy heading spans (from older posts) into real heading elements.
+  doc.querySelectorAll('span[data-heading-type]').forEach((span) => {
+    const tag = (span.getAttribute('data-heading-type') || '').toLowerCase()
+    if (/^h[1-4]$/.test(tag)) {
+      const heading = doc.createElement(tag)
+      heading.innerHTML = span.innerHTML
+      span.replaceWith(heading)
+    }
+  })
+
+  const walk = (node: Node) => {
+    Array.from(node.childNodes).forEach((child) => {
+      if (child.nodeType !== Node.ELEMENT_NODE) {
+        return
+      }
+
+      const element = child as HTMLElement
+
+      // Clean descendants first so unwrapping keeps already-cleaned children.
+      walk(element)
+
+      if (element.tagName === 'DIV') {
+        // contentEditable uses <div> for line breaks. Keep it as a paragraph,
+        // unless it already wraps block content (then just unwrap it).
+        const hasBlockChild = Array.from(element.children).some((c) =>
+          BLOCK_STORAGE_TAGS.includes(c.tagName),
+        )
+        if (hasBlockChild) {
+          while (element.firstChild) {
+            node.insertBefore(element.firstChild, element)
+          }
+          node.removeChild(element)
+        } else {
+          const paragraph = doc.createElement('p')
+          paragraph.innerHTML = element.innerHTML
+          element.replaceWith(paragraph)
+        }
+        return
+      }
+
+      if (!ALLOWED_STORAGE_TAGS.has(element.tagName)) {
+        while (element.firstChild) {
+          node.insertBefore(element.firstChild, element)
+        }
+        node.removeChild(element)
+        return
+      }
+
+      const allowedAttrs = element.tagName === 'A' ? LINK_ATTRS : []
+      Array.from(element.attributes).forEach((attr) => {
+        if (!allowedAttrs.includes(attr.name)) {
+          element.removeAttribute(attr.name)
+        }
+      })
+    })
+  }
+
+  walk(doc.body)
+
+  return doc.body.innerHTML.trim()
+}
 
 const normalizeContentForStorage = (rawContent: string): string => {
   const trimmedContent = rawContent.trim()
@@ -274,17 +350,7 @@ const normalizeContentForStorage = (rawContent: string): string => {
     return smartFormatPlainText(trimmedContent)
   }
 
-  if (!needsContentNormalization(trimmedContent)) {
-    return trimmedContent
-  }
-
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(trimmedContent, 'text/html')
-  const plainText = (doc.body.textContent ?? '')
-    .replace(/\u00a0/g, ' ')
-    .trim()
-
-  return smartFormatPlainText(plainText)
+  return cleanEditorHtml(trimmedContent)
 }
 
 function Dashboard() {
@@ -523,41 +589,30 @@ function Dashboard() {
     focusEditor()
     const selection = window.getSelection()
 
-    if (!selection || selection.toString().length === 0) {
+    if (
+      !selection
+      || selection.rangeCount === 0
+      || selection.toString().trim().length === 0
+    ) {
       setMessage(`Please select text before applying ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting`)
       return
     }
 
-    const selectedText = selection.toString()
+    // Serialize ONLY the selected content (keeping inline formatting such as
+    // bold/links) and wrap it in a real block element. insertHTML replaces just
+    // the selection and splits the surrounding block, so the heading applies to
+    // the selected text only — not the entire post. Real heading tags also
+    // survive storage and render as headings on the post page.
+    const range = selection.getRangeAt(0)
+    const container = document.createElement('div')
+    container.appendChild(range.cloneContents())
+    const selectedHtml = container.innerHTML
 
-    if (tag === 'p') {
-      // Remove formatting from selected text
-      document.execCommand('removeFormat', false, undefined)
-    } else {
-      // Create heading-styled HTML for selected text
-      const headingStyles = {
-        h1: 'font-size: 2em; font-weight: bold;',
-        h2: 'font-size: 1.5em; font-weight: bold;',
-        h3: 'font-size: 1.17em; font-weight: bold;',
-        h4: 'font-size: 1em; font-weight: bold;',
-      }
-
-      const escapedText = selectedText
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-
-      const headingHTML = `<span style="${headingStyles[tag]}" data-heading-type="${tag}">${escapedText}</span>`
-
-      // Use insertHTML which supports undo/redo
-      document.execCommand('insertHTML', false, headingHTML)
-    }
+    document.execCommand('insertHTML', false, `<${tag}>${selectedHtml}</${tag}>`)
 
     syncContentFromEditor()
     contentInputRef.current?.focus()
-    setMessage(`Applied ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting to selected text only`)
+    setMessage(`Applied ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting to the selected text`)
   }
 
   const insertInlineDownloadLink = () => {
