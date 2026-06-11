@@ -140,10 +140,10 @@ export const defaultPostSEO: PageSEO[] = [
   },
   {
     id: 'post-the-trap-closes-mca-fraud',
-    path: '/post/the-trap-closes-mca-fraud',
+    path: '/post/the-reveal-the-mca-fraud-comes-to-light',
     title: 'The Reveal: The MCA Fraud Comes to Light',
     description: 'MCA Exposed shares how small business owners get trapped in merchant cash advance fraud, with rising payments an broken promises.',
-    canonicalUrl: 'https://mca.exposed/post/the-trap-closes-mca-fraud',
+    canonicalUrl: 'https://mca.exposed/post/the-reveal-the-mca-fraud-comes-to-light',
     type: 'post',
   },
   {
@@ -172,10 +172,10 @@ export const defaultPostSEO: PageSEO[] = [
   },
   {
     id: 'post-a-fraudulent-brokerage-ez-advance-llc',
-    path: '/post/a-fraudulent-brokerage-ez-advance-llc',
+    path: '/post/a-fraudulent-brokerage-ez-advance-llc-benjamin-kandhorov-and-gabriel-shamuelov',
     title: 'Fraud: EZ Advance LLC, Benjamin Kandhorov and Gabriel Shamuelov',
     description: 'Uncover the truth behind EZ Advance LLC, a fraudulent brokerage. Learn about the allegations against EZ Advance LLC and their disputed claims.',
-    canonicalUrl: 'https://mca.exposed/post/a-fraudulent-brokerage-ez-advance-llc',
+    canonicalUrl: 'https://mca.exposed/post/a-fraudulent-brokerage-ez-advance-llc-benjamin-kandhorov-and-gabriel-shamuelov',
     type: 'post',
   },
   {
@@ -196,10 +196,10 @@ export const defaultPostSEO: PageSEO[] = [
 },
   {
     id: 'post-what-to-do-i-do-if-i-am-a-victim-of-merchant-cash-advance-loan-fraud',
-    path: '/post/what-to-do-i-do-if-i-am-a-victim-of-merchant-cash-advance-loan-fraud',
+    path: '/post/what-to-do-if-i-am-a-victim-of-merchant-cash-advance-mca-loan-fraud',
     title: 'What To Do if I am a Victim of Merchant Cash Advance loan Fraud?',
     description: 'What to do if you’ve been defrauded by a merchant cash advance loan. Report MCA fraud, contact an attorney, document everything and file complaint.',
-    canonicalUrl: 'https://mca.exposed/post/what-to-do-i-do-if-i-am-a-victim-of-merchant-cash-advance-loan-fraud',
+    canonicalUrl: 'https://mca.exposed/post/what-to-do-if-i-am-a-victim-of-merchant-cash-advance-mca-loan-fraud',
     type: 'post',
   },
   {

@@ -10,7 +10,7 @@ function FooterSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!email || !consent) {
       setMessage('Please provide your email and agree to subscribe.')
       return
@@ -102,9 +102,9 @@ function FooterSection() {
           </form>
 
           <div className={styles.checkbox}>
-            <input 
-              type="checkbox" 
-              id="subscribe" 
+            <input
+              type="checkbox"
+              id="subscribe"
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
             />
@@ -114,7 +114,7 @@ function FooterSection() {
           </div>
 
           {message && (
-            <p className={styles.message} style={{ 
+            <p className={styles.message} style={{
               color: message.includes('Thank you') ? '#28a745' : '#dc3545',
               marginTop: '10px',
               fontSize: '14px'

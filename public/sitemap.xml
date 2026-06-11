@@ -2,127 +2,133 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://mca.exposed</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://mca.exposed/about</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/the-courts</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://mca.exposed/mca-frequently-asked-questions-legal-guide</loc>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mca.exposed/the-records</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mca.exposed/the-records/the-fraud-files</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://mca.exposed/the-records/mca-awareness</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://mca.exposed/report-mca-fraud</loc>
-    <lastmod>2026-04-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://mca.exposed/mca-frequently-asked-questions-legal-guide</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mca.exposed/the-story</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/the-call-that-started-it-all</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/the-hook-false-mca-promises</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-01-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/the-mca-paperwork-it-looked-real</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-02-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mca.exposed/post/the-trap-closes-mca-fraud</loc>
-    <lastmod>2026-04-03</lastmod>
+    <loc>https://mca.exposed/post/the-reveal-the-mca-fraud-comes-to-light</loc>
+    <lastmod>2025-04-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/the-investigation-how-i-found-the-truth-behind-mca-fraud</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-04-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/top-choice-financial-the-servicer-in-the-pipeline</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-05-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/superfast-capital-inc-alternative-capital-group-the-customer-facing-funder</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-05-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mca.exposed/post/a-fraudulent-brokerage-ez-advance-llc</loc>
-    <lastmod>2026-04-03</lastmod>
+    <loc>https://mca.exposed/post/a-fraudulent-brokerage-ez-advance-llc-benjamin-kandhorov-and-gabriel-shamuelov</loc>
+    <lastmod>2025-05-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mca.exposed/post/report-mca-fraud</loc>
+    <lastmod>2025-07-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/protecting-your-business-from-merchant-cash-advance-scams</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-07-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mca.exposed/post/what-to-do-i-do-if-i-am-a-victim-of-merchant-cash-advance-loan-fraud</loc>
-    <lastmod>2026-04-03</lastmod>
+    <loc>https://mca.exposed/post/what-to-do-if-i-am-a-victim-of-merchant-cash-advance-mca-loan-fraud</loc>
+    <lastmod>2025-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/when-the-next-loan-never-comes-a-common-mca-scam-carroting</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mca.exposed/post/uncovering-merchant-cash-advance-fraud-a-legal-perspective</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2025-08-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

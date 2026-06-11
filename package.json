@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently \"npm run server\" \"vite\"",
     "server": "node server/index.js",
-    "build": "tsc -b && vite build",
+    "generate:sitemap": "node scripts/generate-sitemap.ts",
+    "build": "npm run generate:sitemap && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
