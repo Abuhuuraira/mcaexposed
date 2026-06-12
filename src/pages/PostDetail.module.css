@@ -75,7 +75,9 @@
   font-size: 18px;
 }
 
-.content * {
+/* Normalize fonts across content, but let <font face="..."> keep its chosen
+   family — its presentational hint loses to a universal selector otherwise. */
+.content *:not(font) {
   font-family: inherit;
 }
 

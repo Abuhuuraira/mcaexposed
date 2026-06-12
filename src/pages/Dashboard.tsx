@@ -264,10 +264,12 @@ const shouldSmartFormatEditorHtml = (rawHtml: string): boolean =>
 // section, table, etc.) is unwrapped so only its text/children remain.
 const ALLOWED_STORAGE_TAGS = new Set([
   'A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I',
-  'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE',
+  'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'FONT',
 ])
 const BLOCK_STORAGE_TAGS = ['P', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'DIV']
 const LINK_ATTRS = ['href', 'target', 'rel', 'download']
+// execCommand('fontName'|'foreColor'|'fontSize') emits <font face|color|size>.
+const FONT_ATTRS = ['face', 'color', 'size']
 
 // Cleans editor HTML for storage WITHOUT flattening structure: it preserves
 // block boundaries (headings, paragraphs, lists) while stripping styling spans
@@ -325,7 +327,8 @@ const cleanEditorHtml = (rawHtml: string): string => {
         return
       }
 
-      const allowedAttrs = element.tagName === 'A' ? LINK_ATTRS : []
+      const allowedAttrs =
+        element.tagName === 'A' ? LINK_ATTRS : element.tagName === 'FONT' ? FONT_ATTRS : []
       Array.from(element.attributes).forEach((attr) => {
         if (!allowedAttrs.includes(attr.name)) {
           element.removeAttribute(attr.name)
