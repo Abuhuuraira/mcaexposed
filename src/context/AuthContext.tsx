@@ -13,8 +13,8 @@ const AUTH_EXPIRES_KEY = 'auth_expires_at';
 const AUTH_ATTEMPTS_KEY = 'auth_attempt_count';
 const AUTH_LOCK_UNTIL_KEY = 'auth_lock_until';
 
-const ADMIN_USERNAME = (import.meta.env.VITE_ADMIN_USERNAME ?? '').trim();
-const PASSWORD_HASH = (import.meta.env.VITE_ADMIN_PASSWORD_HASH ?? '').trim().toLowerCase();
+const ADMIN_USERNAME = (import.meta.env.VITE_ADMIN_USERNAME ?? 'Abuhuraira').trim();
+const PASSWORD_HASH = (import.meta.env.VITE_ADMIN_PASSWORD_HASH ?? '0ddbc2b4d8a66bec718a26635316d2ae64eca79aa7b655cd1c21f04a20910fae').trim().toLowerCase();
 const PASSWORD_SALT_PREFIX = import.meta.env.VITE_AUTH_SALT_PREFIX ?? 'mca-expose::';
 
 const MAX_FAILED_ATTEMPTS = 5;
