@@ -3,6 +3,7 @@ import cors from 'cors'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { Readable } from 'node:stream'
 import nodemailer from 'nodemailer'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -263,6 +264,72 @@ app.post('/api/newsletter/subscribe', async (req, res) => {
 app.get('/api/newsletter/subscribers', async (_req, res) => {
   const subscribers = await readNewsletterSubscribers()
   res.json(subscribers)
+})
+
+// Streams a remote file back to the browser as an attachment so "Download"
+// buttons actually download (the source PDFs are cross-origin, so the anchor
+// `download` attribute is ignored by browsers). Hosts are whitelisted to avoid
+// turning this into an open proxy.
+const ALLOWED_DOWNLOAD_HOSTS = new Set([
+  'www.mcaexposed.com',
+  'mcaexposed.com',
+  'static.wixstatic.com',
+  'www.courtlistener.com',
+  'storage.courtlistener.com',
+])
+
+app.get('/api/download', async (req, res) => {
+  const { url, name } = req.query
+
+  if (typeof url !== 'string') {
+    res.status(400).json({ error: 'Missing url' })
+    return
+  }
+
+  let target
+  try {
+    target = new URL(url)
+  } catch {
+    res.status(400).json({ error: 'Invalid url' })
+    return
+  }
+
+  if (target.protocol !== 'https:' || !ALLOWED_DOWNLOAD_HOSTS.has(target.hostname)) {
+    res.status(403).json({ error: 'Host not allowed' })
+    return
+  }
+
+  try {
+    const upstream = await fetch(target.href)
+    if (!upstream.ok || !upstream.body) {
+      res.status(502).json({ error: 'Failed to fetch file' })
+      return
+    }
+
+    // Guard against dead source URLs that redirect to an HTML page (e.g. a SPA
+    // shell): don't hand the browser an HTML document renamed as a download.
+    const upstreamType = upstream.headers.get('content-type') || ''
+    if (upstreamType.includes('text/html')) {
+      res.status(404).json({ error: 'Source file is not available (got an HTML page).' })
+      return
+    }
+
+    const fallbackName = target.pathname.split('/').pop() || 'download'
+    const safeName = (typeof name === 'string' && name ? name : fallbackName)
+      .replace(/[^\w.\- ]+/g, '_')
+
+    res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream')
+    res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`)
+    const contentLength = upstream.headers.get('content-length')
+    if (contentLength) {
+      res.setHeader('Content-Length', contentLength)
+    }
+
+    Readable.fromWeb(upstream.body).pipe(res)
+  } catch (error) {
+    console.error('Download proxy failed:', error)
+    res.status(502).json({ error: 'Download failed' })
+  }
 })
 
 app.listen(port, async () => {

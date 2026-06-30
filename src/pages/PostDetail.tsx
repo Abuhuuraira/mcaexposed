@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import FooterSection from '../components/FooterSection'
 import { SEO } from '../components/SEO'
 import { findPostBySlug, type Post } from '../data/posts'
+import { getInitialPostBySlug } from '../ssr/data'
 import styles from './PostDetail.module.css'
 
 const allowedTags = new Set(['A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'DIV', 'FONT'])
@@ -10,6 +11,13 @@ const allowedTags = new Set(['A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I', 'H1', 'H2
 const sanitizeHtml = (rawHtml: string): string => {
   if (!rawHtml.trim()) {
     return ''
+  }
+
+  // DOMParser is browser-only. During build-time prerendering (Node) there is no
+  // DOM, so return the (admin-authored, trusted) markup untouched; the browser
+  // re-sanitizes it on hydration.
+  if (typeof DOMParser === 'undefined') {
+    return rawHtml
   }
 
   const parser = new DOMParser()
@@ -208,8 +216,11 @@ const renderPostContent = (rawContent: string) => {
 
 function PostDetail() {
   const { slug } = useParams()
-  const [post, setPost] = useState<Post | undefined>(undefined)
-  const [isLoading, setIsLoading] = useState(true)
+  // Seed synchronously from prerender/hydration data so the post renders on the
+  // first paint; the effect still refreshes from the live API afterwards.
+  const initialPost = slug ? getInitialPostBySlug(slug) : undefined
+  const [post, setPost] = useState<Post | undefined>(initialPost)
+  const [isLoading, setIsLoading] = useState(!initialPost)
 
   useEffect(() => {
     const loadPost = async () => {

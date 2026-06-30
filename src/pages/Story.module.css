@@ -4,6 +4,15 @@
   transform: translateX(-50%);
   background: #070707;
   color: #161616;
+  /* Fill the viewport (minus the ~82px navbar) and push the footer to the
+     bottom so it stays pinned on short content / tall (>2560px) screens. */
+  min-height: calc(100vh - 82px);
+  display: flex;
+  flex-direction: column;
+}
+
+.pageWrap :global(footer) {
+  margin-top: auto;
 }
 
 .contentContainer {

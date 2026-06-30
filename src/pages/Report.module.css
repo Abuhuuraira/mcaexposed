@@ -4,6 +4,13 @@
   transform: translateX(-50%);
   background: #070707;
   color: #ffffff;
+  /* Fill the viewport (minus the ~82px navbar) so the footer stays pinned to the
+     bottom on short content / tall (>2560px) screens. The hero section grows to
+     absorb the extra space (see .heroSection) instead of leaving a gap above the
+     footer. */
+  min-height: calc(100vh - 82px);
+  display: flex;
+  flex-direction: column;
 }
 
 .contentContainer {
@@ -14,6 +21,12 @@
 
 .heroSection {
   padding: 3.1rem 0 2.9rem;
+  /* Grow to fill the space between the navbar and the footer, keeping the
+     content vertically centered so there is no empty gap above the footer. */
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .heroSection h1 {

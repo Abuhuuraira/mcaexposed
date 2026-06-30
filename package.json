@@ -7,7 +7,10 @@
     "dev": "concurrently \"npm run server\" \"vite\"",
     "server": "node server/index.js",
     "generate:sitemap": "node scripts/generate-sitemap.ts",
-    "build": "npm run generate:sitemap && tsc -b && vite build",
+    "build:client": "vite build",
+    "build:server": "vite build --ssr src/entry-server.tsx --outDir dist-ssr",
+    "prerender": "node scripts/prerender.ts",
+    "build": "npm run generate:sitemap && tsc -b && npm run build:client && npm run build:server && npm run prerender",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -8,14 +8,19 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: light dark;
+  color-scheme: dark;
   color: #213547;
-  background-color: #f5f5f5;
+  /* Dark document background so the full-bleed (100vw) sections never reveal a
+     light Canvas/background on wide screens (>2560px), where the scrollbar gutter
+     shifts the wrapper a few px and would otherwise leak a white strip. */
+  background-color: #070707;
+
 }
 
 body {
   min-height: 100vh;
   overflow-x: hidden;
+  background-color: #070707;
 }
 
 a {

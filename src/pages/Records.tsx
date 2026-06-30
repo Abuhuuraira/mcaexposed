@@ -3,6 +3,7 @@ import { Link, useSearchParams, useParams } from 'react-router-dom'
 import FooterSection from '../components/FooterSection'
 import { SEO } from '../components/SEO'
 import { getAllPosts, type Post, type PostCategory } from '../data/posts'
+import { getInitialPosts } from '../ssr/data'
 import styles from './Records.module.css'
 
 const filters = ['All Posts', 'The Fraud Files', 'MCA Awareness', 'Other'] as const
@@ -29,7 +30,7 @@ const normalizeCategory = (value: string) => value.trim().toLowerCase()
 function Records() {
   const [searchParams] = useSearchParams()
   const { category: categoryFromPath } = useParams()
-  const [allPosts, setAllPosts] = useState<Post[]>([])
+  const [allPosts, setAllPosts] = useState<Post[]>(() => getInitialPosts())
   
   // Determine active filter from URL path parameter or query param
   let activeFilter: FilterOption

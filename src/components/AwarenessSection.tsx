@@ -2,15 +2,20 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './AwarenessSection.module.css'
 import { getAllPosts, type Post } from '../data/posts'
+import { getInitialPosts } from '../ssr/data'
+
+const pickAwarenessPosts = (posts: Post[]) =>
+  posts.filter((post) => post.category === 'MCA Awareness').slice(0, 3)
 
 function AwarenessSection() {
-  const [awarenessPosts, setAwarenessPosts] = useState<Post[]>([])
+  const [awarenessPosts, setAwarenessPosts] = useState<Post[]>(() =>
+    pickAwarenessPosts(getInitialPosts()),
+  )
 
   useEffect(() => {
     const fetchPosts = async () => {
       const posts = await getAllPosts(true) // only published
-      const filtered = posts.filter(post => post.category === 'MCA Awareness').slice(0, 3)
-      setAwarenessPosts(filtered)
+      setAwarenessPosts(pickAwarenessPosts(posts))
     }
     fetchPosts()
   }, [])

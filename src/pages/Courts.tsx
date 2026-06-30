@@ -12,7 +12,8 @@ const cases = [
     image:
       'https://static.wixstatic.com/media/6b4687_91347cda855f40e390a3b921578ded33~mv2.jpg/v1/fill/w_378,h_283,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/01-image1-2%20(1).jpg',
     complaint:
-      'https://www.mcaexposed.com/_files/ugd/6b4687_7843c088f38d4aee9722a3144edcf306.pdf',
+      'https://storage.courtlistener.com/recap/gov.uscourts.flmd.447551/gov.uscourts.flmd.447551.1.0.pdf',
+    complaintName: 'mt-products-v-ez-advance-complaint.pdf',
     files:
       'https://www.courtlistener.com/docket/71373637/mt-products-llc-v-ez-advance-llc/',
     imageAlt: 'RICO case visual',
@@ -25,7 +26,8 @@ const cases = [
     image:
       'https://static.wixstatic.com/media/6b4687_b2c1c800d907423da0f1d6bf18d7f479~mv2.png/v1/fill/w_378,h_283,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/blog_hero_TCPA_547852024_7.21.22_1500x1000.png',
     complaint:
-      'https://www.mcaexposed.com/_files/ugd/6b4687_47c51f48ca3744abb28c979cf41f35d5.pdf?index=true',
+      'https://storage.courtlistener.com/recap/gov.uscourts.wiwd.55592/gov.uscourts.wiwd.55592.1.0_1.pdf',
+    complaintName: 'bachhuber-v-ez-advance-class-action-complaint.pdf',
     files:
       'https://www.courtlistener.com/docket/71945376/bachhuber-kevin-v-ez-advance-llc/',
     imageAlt: 'Class action lawsuit visual',
@@ -79,9 +81,7 @@ function Courts() {
               <p className={styles.caseDescription}>{caseItem.description}</p>
               <div className={styles.actions}>
                 <a
-                  href={caseItem.complaint}
-                  target="_blank"
-                  rel="noreferrer"
+                  href={`/api/download?url=${encodeURIComponent(caseItem.complaint)}&name=${encodeURIComponent(caseItem.complaintName)}`}
                   className={styles.outlineBtn}
                 >
                   Download Complaint

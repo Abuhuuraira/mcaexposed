@@ -18,39 +18,49 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import AccessibilityStatement from './pages/AccessibilityStatement'
 import './App.css'
 
+// Everything that needs a Router context, minus the Router and HelmetProvider
+// themselves. Shared by the client entry (BrowserRouter) and the prerenderer
+// (StaticRouter + HelmetProvider with a collecting context) so the route tree is
+// declared exactly once.
+export function AppContent() {
+  return (
+    <AuthProvider>
+      <ScrollToTop />
+      <Navbar />
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/the-records" element={<Records />} />
+          <Route path="/the-records/:category" element={<Records />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/post/:slug" element={<PostDetail />} />
+          <Route path="/the-courts" element={<Courts />} />
+          <Route path="/the-story" element={<Story />} />
+          <Route path="/report-mca-fraud" element={<Report />} />
+          <Route path="/mca-frequently-asked-questions-legal-guide" element={<Faq />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/accessibility-statement" element={<AccessibilityStatement />} />
+        </Routes>
+      </main>
+    </AuthProvider>
+  )
+}
+
 function App() {
   return (
     <HelmetProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <Navbar />
-          <main className="main-content">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/the-records" element={<Records />} />
-              <Route path="/the-records/:category" element={<Records />} />
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/post/:slug" element={<PostDetail />} />
-              <Route path="/the-courts" element={<Courts />} />
-              <Route path="/the-story" element={<Story />} />
-              <Route path="/report-mca-fraud" element={<Report />} />
-              <Route path="/mca-frequently-asked-questions-legal-guide" element={<Faq />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/accessibility-statement" element={<AccessibilityStatement />} />
-            </Routes>
-          </main>
-        </BrowserRouter>
-      </AuthProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
     </HelmetProvider>
   )
 }

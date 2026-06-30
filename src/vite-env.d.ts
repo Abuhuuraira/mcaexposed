@@ -9,3 +9,9 @@ interface ImportMetaEnv {
 interface ImportMeta {
 	readonly env: ImportMetaEnv
 }
+
+interface Window {
+	// Seeded by the prerenderer into each generated HTML file so the first
+	// client render matches the server-rendered markup during hydration.
+	__SSR_DATA__?: import('./ssr/data').InitialData
+}
