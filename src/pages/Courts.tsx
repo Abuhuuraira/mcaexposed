@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties } from 'react'
+import { useEffect, type CSSProperties, type MouseEvent } from 'react'
 import FooterSection from '../components/FooterSection'
 import { SEO } from '../components/SEO'
 import styles from './Courts.module.css'
@@ -33,6 +33,61 @@ const cases = [
     imageAlt: 'Class action lawsuit visual',
   },
 ]
+
+const triggerBrowserDownload = (blob: Blob, fileName: string) => {
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = objectUrl
+  link.download = fileName
+  link.rel = 'noreferrer'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+
+  window.setTimeout(() => {
+    URL.revokeObjectURL(objectUrl)
+  }, 1000)
+}
+
+const downloadComplaint = async (sourceUrl: string, fileName: string) => {
+  const candidateUrls = [
+    `/api/download?url=${encodeURIComponent(sourceUrl)}&name=${encodeURIComponent(fileName)}`,
+    sourceUrl,
+  ]
+
+  for (const candidateUrl of candidateUrls) {
+    try {
+      const response = await fetch(candidateUrl, { credentials: 'same-origin' })
+
+      if (!response.ok) {
+        continue
+      }
+
+      const contentType = response.headers.get('content-type') ?? ''
+      if (contentType.includes('text/html')) {
+        continue
+      }
+
+      const blob = await response.blob()
+      triggerBrowserDownload(blob, fileName)
+      return
+    } catch {
+      // Try the next source.
+    }
+  }
+
+  window.open(sourceUrl, '_blank', 'noopener,noreferrer')
+}
+
+const handleComplaintDownload = (
+  event: MouseEvent<HTMLAnchorElement>,
+  sourceUrl: string,
+  fileName: string,
+) => {
+  event.preventDefault()
+  void downloadComplaint(sourceUrl, fileName)
+}
 
 function Courts() {
   useEffect(() => {
@@ -81,7 +136,9 @@ function Courts() {
               <p className={styles.caseDescription}>{caseItem.description}</p>
               <div className={styles.actions}>
                 <a
-                  href={`/api/download?url=${encodeURIComponent(caseItem.complaint)}&name=${encodeURIComponent(caseItem.complaintName)}`}
+                  href={caseItem.complaint}
+                  download={caseItem.complaintName}
+                  onClick={(event) => handleComplaintDownload(event, caseItem.complaint, caseItem.complaintName)}
                   className={styles.outlineBtn}
                 >
                   Download Complaint
