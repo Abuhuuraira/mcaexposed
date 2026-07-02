@@ -210,18 +210,24 @@ function Dashboard() {
   const publishedCount = allPosts.filter((post) => post.published === true).length
 
   const allSEOItems = useMemo(() => {
+    // pageSEO already holds the pages and any posts that have a curated SEO
+    // record (from getAllPageSEO). Dedupe by path so those aren't listed twice,
+    // and add an entry for any post that has no SEO record yet (e.g. a newly
+    // created custom post) so it, too, can be edited.
     const items = [...pageSEO]
+    const seenPaths = new Set(items.map(item => item.path))
     allPosts.forEach(post => {
-      const existing = items.find(item => item.id === `post-${post.id}`)
-      if (!existing) {
+      const path = `/post/${post.slug}`
+      if (!seenPaths.has(path)) {
         items.push({
-          id: `post-${post.id}`,
-          path: `/post/${post.slug}`,
+          id: `post-${post.slug}`,
+          path,
           title: post.title,
           description: post.excerpt,
-          canonicalUrl: `https://mca.exposed/post/${post.slug}`,
+          canonicalUrl: `https://mca.exposed${path}`,
           type: 'post',
         })
+        seenPaths.add(path)
       }
     })
     return items
@@ -610,7 +616,6 @@ function Dashboard() {
             <button
               className={`${styles.tabBtn} ${activeSection === 'seo' ? styles.tabActive : ''}`}
               onClick={() => setActiveSection('seo')}
-              style={{ display: 'none' }}
             >
               SEO Settings
             </button>
@@ -930,6 +935,9 @@ function Dashboard() {
 
                 {selectedSEO && (
                   <form
+                    // key resets the uncontrolled inputs below to the newly
+                    // selected item's values whenever the dropdown changes.
+                    key={selectedSEO.id}
                     className={styles.seoEditForm}
                     onSubmit={(e) => {
                       e.preventDefault()
@@ -938,6 +946,11 @@ function Dashboard() {
                         title: (formData.get('title') as string).trim(),
                         description: (formData.get('description') as string).trim(),
                         canonicalUrl: (formData.get('canonicalUrl') as string).trim(),
+                        // Persist path + type so getPageSEOByPath can match this
+                        // record when the page renders (the server stores the
+                        // payload verbatim; without path the edit is unreachable).
+                        path: selectedSEO.path,
+                        type: selectedSEO.type,
                       }
                       handleUpdatePageSEO(selectedSEO.id, updates)
                     }}

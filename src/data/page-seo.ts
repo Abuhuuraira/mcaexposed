@@ -224,14 +224,20 @@ export const getAllPageSEO = async (): Promise<PageSEO[]> => {
   try {
     const response = await fetch(`${API_BASE}`)
     if (response.ok) {
-      const customSEO = await response.json()
-      // Merge default pages and posts with custom SEO (custom overrides defaults)
+      const customSEO: PageSEO[] = await response.json()
+      // Merge default pages and posts with custom SEO (custom overrides defaults).
+      // Spread rather than replace so fields the edit form doesn't send — path,
+      // type, noindex — are preserved from the default.
       const allDefaults = [...defaultPageSEO, ...defaultPostSEO]
       const merged = allDefaults.map(defaultSEO => {
         const custom = customSEO.find((c: PageSEO) => c.id === defaultSEO.id)
-        return custom || defaultSEO
+        return custom ? { ...defaultSEO, ...custom } : defaultSEO
       })
-      return merged
+      // Keep custom-only records (e.g. SEO added for a newly created post that
+      // has no default entry) so their edits aren't silently dropped.
+      const knownIds = new Set(allDefaults.map(d => d.id))
+      const extras = customSEO.filter((c: PageSEO) => !knownIds.has(c.id))
+      return [...merged, ...extras]
     }
   } catch (error) {
     console.error('Failed to fetch custom page SEO:', error)
