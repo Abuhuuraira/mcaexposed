@@ -4,71 +4,8 @@ import FooterSection from '../components/FooterSection'
 import { SEO } from '../components/SEO'
 import { findPostBySlug, type Post } from '../data/posts'
 import { getInitialPostBySlug } from '../ssr/data'
+import { sanitizeContentHtml } from '../components/editor'
 import styles from './PostDetail.module.css'
-
-const allowedTags = new Set(['A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'DIV', 'FONT'])
-
-const sanitizeHtml = (rawHtml: string): string => {
-  if (!rawHtml.trim()) {
-    return ''
-  }
-
-  // DOMParser is browser-only. During build-time prerendering (Node) there is no
-  // DOM, so return the (admin-authored, trusted) markup untouched; the browser
-  // re-sanitizes it on hydration.
-  if (typeof DOMParser === 'undefined') {
-    return rawHtml
-  }
-
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(rawHtml, 'text/html')
-
-  const walk = (node: Node) => {
-    const children = Array.from(node.childNodes)
-
-    for (const child of children) {
-      if (child.nodeType === Node.ELEMENT_NODE) {
-        const element = child as HTMLElement
-
-        if (!allowedTags.has(element.tagName)) {
-          while (element.firstChild) {
-            node.insertBefore(element.firstChild, element)
-          }
-          node.removeChild(element)
-          continue
-        }
-
-        if (element.tagName === 'A') {
-          const href = element.getAttribute('href') ?? ''
-          const isHttpLink = /^https?:\/\//i.test(href)
-          const isDownloadDataLink = /^data:application\/[a-z0-9.+-]+;base64,/i.test(href)
-
-          if (!isHttpLink && !isDownloadDataLink) {
-            element.removeAttribute('href')
-          }
-          element.setAttribute('target', '_blank')
-          element.setAttribute('rel', 'noreferrer')
-        }
-
-        const allowedAttrs = element.tagName === 'A'
-          ? ['href', 'target', 'rel', 'download']
-          : element.tagName === 'FONT'
-            ? ['face', 'color', 'size']
-            : []
-        Array.from(element.attributes).forEach((attr) => {
-          if (!allowedAttrs.includes(attr.name)) {
-            element.removeAttribute(attr.name)
-          }
-        })
-
-        walk(element)
-      }
-    }
-  }
-
-  walk(doc.body)
-  return doc.body.innerHTML
-}
 
 const parseInlineContent = (text: string): ReactNode[] => {
   const nodes: ReactNode[] = []
@@ -206,7 +143,7 @@ const renderPostContent = (rawContent: string) => {
     return (
       <article
         className={styles.content}
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(rawContent) }}
+        dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(rawContent) }}
       />
     )
   }

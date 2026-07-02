@@ -1,0 +1,207 @@
+.editor {
+  border: 1px solid #303030;
+  border-radius: 8px;
+  background: #090909;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.55rem;
+  min-height: 44px;
+  background: #111;
+  border-bottom: 1px solid #303030;
+}
+
+.divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 0.35rem;
+  background: #303030;
+}
+
+.btn,
+.btnActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 30px;
+  padding: 0 0.5rem;
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: #ddd;
+  background: #1b1b1b;
+  border: 1px solid #303030;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn:hover,
+.btnActive:hover {
+  background: #262626;
+  border-color: #454545;
+}
+
+.btn:focus-visible,
+.btnActive:focus-visible {
+  outline: none;
+  border-color: #39ff14;
+  box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.2);
+}
+
+.btnActive {
+  color: #090909;
+  background: #39ff14;
+  border-color: #39ff14;
+}
+
+/* Scoped under .toolbar so these win over a host form's `.form select` rule,
+   which otherwise overrides these (element+class beats a lone class) and
+   stretches the boxes full-width with the wrong text color. */
+.toolbar .select {
+  width: auto;
+  height: 30px;
+  /* Wide enough that the placeholder labels ("Select font family", etc.) show
+     in full in the collapsed box instead of being truncated. */
+  min-width: 150px;
+  padding: 0 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: #ddd;
+  background: #1b1b1b;
+  border: 1px solid #303030;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.toolbar .select:focus-visible {
+  outline: none;
+  border-color: #39ff14;
+}
+
+/* The native option popup is rendered by the OS. On Windows it uses a light
+   system background, so the select's light text (#ddd) becomes invisible
+   (light-on-light). Set an explicit dark background + light text on options. */
+.select option {
+  color: #ddd;
+  background: #1b1b1b;
+}
+
+.colorControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 30px;
+  padding: 0 0.45rem;
+  color: #ddd;
+  font-size: 0.85rem;
+  background: #1b1b1b;
+  border: 1px solid #303030;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.colorInput {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.colorLabel {
+  user-select: none;
+}
+
+.swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid #454545;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.swatch:hover {
+  transform: scale(1.08);
+}
+
+/* Editable surface */
+.surface {
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.content {
+  min-height: 240px;
+  padding: 0.75rem 0.85rem;
+  color: #fff;
+  outline: none;
+  font: inherit;
+  line-height: 1.6;
+}
+
+.content:focus {
+  outline: none;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  color: #39ff14;
+  line-height: 1.25;
+  margin: 0.9em 0 0.4em;
+}
+
+.content h1 { font-size: 1.7rem; }
+.content h2 { font-size: 1.4rem; }
+.content h3 { font-size: 1.2rem; }
+.content h4 { font-size: 1.05rem; }
+
+.content p,
+.content li {
+  margin: 0.5em 0;
+}
+
+.content ul,
+.content ol {
+  padding-left: 1.4rem;
+  margin: 0.5em 0;
+}
+
+.content a {
+  color: #39ff14;
+  text-decoration: underline;
+}
+
+.content blockquote {
+  margin: 0.7em 0;
+  padding-left: 0.9rem;
+  border-left: 3px solid #39ff14;
+  color: #cfcfcf;
+  font-style: italic;
+}
+
+/* Placeholder-like hint for an empty document. */
+.content :global(p.is-editor-empty:first-child)::before {
+  content: 'Write your full post content here…';
+  color: #7f7f7f;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

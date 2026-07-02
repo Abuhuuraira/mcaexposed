@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ClipboardEvent, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import FooterSection from '../components/FooterSection'
+import { RichTextEditor, sanitizeContentHtml, type RichTextEditorHandle } from '../components/editor'
 import {
   addCustomPost,
   deleteCustomPost,
@@ -96,93 +97,6 @@ const linkifyText = (value: string) =>
     (url) => `<a href="${url}" target="_blank" rel="noreferrer">${url}</a>`,
   )
 
-// Color conversion utilities
-const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : null
-}
-
-const rgbToHex = (r: number, g: number, b: number): string => {
-  return (
-    '#' +
-    [r, g, b]
-      .map((x) => {
-        const hex = x.toString(16)
-        return hex.length === 1 ? '0' + hex : hex
-      })
-      .join('')
-      .toUpperCase()
-  )
-}
-
-const rgbToHsl = (r: number, g: number, b: number): { h: number; s: number; l: number } => {
-  r /= 255
-  g /= 255
-  b /= 255
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  let h = 0
-  let s = 0
-  const l = (max + min) / 2
-
-  if (max !== min) {
-    const d = max - min
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-    switch (max) {
-      case r:
-        h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-        break
-      case g:
-        h = ((b - r) / d + 2) / 6
-        break
-      case b:
-        h = ((r - g) / d + 4) / 6
-        break
-    }
-  }
-
-  return { h: h * 360, s: s * 100, l: l * 100 }
-}
-
-const hslToRgb = (h: number, s: number, l: number): { r: number; g: number; b: number } => {
-  h = h / 360
-  s = s / 100
-  l = l / 100
-
-  let r, g, b
-
-  if (s === 0) {
-    r = g = b = l
-  } else {
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1
-      if (t > 1) t -= 1
-      if (t < 1 / 6) return p + (q - p) * 6 * t
-      if (t < 1 / 2) return q
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-      return p
-    }
-
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-    const p = 2 * l - q
-    r = hue2rgb(p, q, h + 1 / 3)
-    g = hue2rgb(p, q, h)
-    b = hue2rgb(p, q, h - 1 / 3)
-  }
-
-  return {
-    r: Math.round(r * 255),
-    g: Math.round(g * 255),
-    b: Math.round(b * 255),
-  }
-}
-
 const isLikelyHeading = (line: string, blockIndex: number) => {
   if (/^#{1,3}\s+/.test(line)) {
     return true
@@ -257,103 +171,19 @@ const smartFormatPlainText = (rawText: string): string => {
     .join('')
 }
 
-const shouldSmartFormatEditorHtml = (rawHtml: string): boolean =>
-  !/<(h[1-6]|p|ul|ol|li|blockquote|a|strong|b|em|i)\b/i.test(rawHtml)
-
-// Tags we keep as-is when saving editor HTML. Everything else (span, font,
-// section, table, etc.) is unwrapped so only its text/children remain.
-const ALLOWED_STORAGE_TAGS = new Set([
-  'A', 'P', 'BR', 'STRONG', 'EM', 'B', 'I',
-  'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'FONT',
-])
-const BLOCK_STORAGE_TAGS = ['P', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'DIV']
-const LINK_ATTRS = ['href', 'target', 'rel', 'download']
-// execCommand('fontName'|'foreColor'|'fontSize') emits <font face|color|size>.
-const FONT_ATTRS = ['face', 'color', 'size']
-
-// Cleans editor HTML for storage WITHOUT flattening structure: it preserves
-// block boundaries (headings, paragraphs, lists) while stripping styling spans
-// and other unsupported markup. This is what keeps an applied <h2> an <h2>
-// instead of collapsing the whole post into a single paragraph.
-const cleanEditorHtml = (rawHtml: string): string => {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(rawHtml, 'text/html')
-
-  // Convert legacy heading spans (from older posts) into real heading elements.
-  doc.querySelectorAll('span[data-heading-type]').forEach((span) => {
-    const tag = (span.getAttribute('data-heading-type') || '').toLowerCase()
-    if (/^h[1-4]$/.test(tag)) {
-      const heading = doc.createElement(tag)
-      heading.innerHTML = span.innerHTML
-      span.replaceWith(heading)
-    }
-  })
-
-  const walk = (node: Node) => {
-    Array.from(node.childNodes).forEach((child) => {
-      if (child.nodeType !== Node.ELEMENT_NODE) {
-        return
-      }
-
-      const element = child as HTMLElement
-
-      // Clean descendants first so unwrapping keeps already-cleaned children.
-      walk(element)
-
-      if (element.tagName === 'DIV') {
-        // contentEditable uses <div> for line breaks. Keep it as a paragraph,
-        // unless it already wraps block content (then just unwrap it).
-        const hasBlockChild = Array.from(element.children).some((c) =>
-          BLOCK_STORAGE_TAGS.includes(c.tagName),
-        )
-        if (hasBlockChild) {
-          while (element.firstChild) {
-            node.insertBefore(element.firstChild, element)
-          }
-          node.removeChild(element)
-        } else {
-          const paragraph = doc.createElement('p')
-          paragraph.innerHTML = element.innerHTML
-          element.replaceWith(paragraph)
-        }
-        return
-      }
-
-      if (!ALLOWED_STORAGE_TAGS.has(element.tagName)) {
-        while (element.firstChild) {
-          node.insertBefore(element.firstChild, element)
-        }
-        node.removeChild(element)
-        return
-      }
-
-      const allowedAttrs =
-        element.tagName === 'A' ? LINK_ATTRS : element.tagName === 'FONT' ? FONT_ATTRS : []
-      Array.from(element.attributes).forEach((attr) => {
-        if (!allowedAttrs.includes(attr.name)) {
-          element.removeAttribute(attr.name)
-        }
-      })
-    })
-  }
-
-  walk(doc.body)
-
-  return doc.body.innerHTML.trim()
-}
-
 const normalizeContentForStorage = (rawContent: string): string => {
   const trimmedContent = rawContent.trim()
   if (!trimmedContent) {
     return ''
   }
 
+  // The editor always emits HTML, but if a caller ever passes raw pasted plain
+  // text we still turn it into structured HTML before sanitizing.
   const hasHtmlTag = /<\/?[a-z][\s\S]*>/i.test(trimmedContent)
-  if (!hasHtmlTag) {
-    return smartFormatPlainText(trimmedContent)
-  }
+  const html = hasHtmlTag ? trimmedContent : smartFormatPlainText(trimmedContent)
 
-  return cleanEditorHtml(trimmedContent)
+  // Same sanitizer the public post page uses, so stored HTML == rendered HTML.
+  return sanitizeContentHtml(html)
 }
 
 function Dashboard() {
@@ -370,15 +200,9 @@ function Dashboard() {
   const [pageSEO, setPageSEO] = useState<PageSEO[]>(defaultPageSEO)
   const [selectedSEOId, setSelectedSEOId] = useState<string>('home')
   const [activeSection, setActiveSection] = useState<'posts' | 'newsletter' | 'seo'>('posts')
-  const [showFontPicker, setShowFontPicker] = useState(false)
-  const [showColorPicker, setShowColorPicker] = useState(false)
-  const [selectedColor, setSelectedColor] = useState('#39ff14')
-  const [colorHue, setColorHue] = useState(120)
-  const [colorSaturation, setColorSaturation] = useState(100)
-  const [colorBrightness, setColorBrightness] = useState(50)
   const formRef = useRef(form)
   const pendingImageUploadRef = useRef<Promise<void> | null>(null)
-  const contentInputRef = useRef<HTMLDivElement | null>(null)
+  const editorRef = useRef<RichTextEditorHandle | null>(null)
   const navigate = useNavigate()
   const { logout, username } = useAuth()
   const customPostsCount = allPosts.filter((post) => post.source === 'custom').length
@@ -522,100 +346,13 @@ function Dashboard() {
     void refreshPageSEO()
   }, [])
 
-  useEffect(() => {
-    const input = contentInputRef.current
-    if (!input) {
-      return
-    }
-
-    if (input.innerHTML !== form.content) {
-      input.innerHTML = form.content
-    }
-  }, [form.content])
-
-  const syncContentFromEditor = () => {
-    const input = contentInputRef.current
-    if (!input) {
-      return
-    }
-
-    const nextForm = { ...formRef.current, content: input.innerHTML }
+  // Editor → state. Tiptap owns the editable DOM and reports serialized HTML
+  // here; React never writes back into the editor on keystrokes, so the caret
+  // never jumps. formRef is kept in sync for the async submit path.
+  const handleContentChange = (html: string) => {
+    const nextForm = { ...formRef.current, content: html }
     formRef.current = nextForm
     setForm(nextForm)
-  }
-
-  const smartFormatEditorIfNeeded = () => {
-    const input = contentInputRef.current
-    if (!input) {
-      return
-    }
-
-    const plainText = input.innerText.replace(/\u00a0/g, ' ').trim()
-    if (!plainText || !shouldSmartFormatEditorHtml(input.innerHTML)) {
-      syncContentFromEditor()
-      return
-    }
-
-    const formattedHtml = smartFormatPlainText(plainText)
-    if (!formattedHtml) {
-      syncContentFromEditor()
-      return
-    }
-
-    input.innerHTML = formattedHtml
-    syncContentFromEditor()
-  }
-
-  const handleEditorPaste = (event: ClipboardEvent<HTMLDivElement>) => {
-    const pastedText = event.clipboardData.getData('text/plain')
-    if (!pastedText.trim()) {
-      return
-    }
-
-    event.preventDefault()
-    const formattedHtml = smartFormatPlainText(pastedText)
-    document.execCommand('insertHTML', false, formattedHtml || escapeHtml(pastedText))
-    syncContentFromEditor()
-  }
-
-  const focusEditor = () => {
-    contentInputRef.current?.focus()
-  }
-
-  const runCommand = (command: string, value?: string) => {
-    focusEditor()
-    document.execCommand(command, false, value)
-    syncContentFromEditor()
-  }
-
-  const handleFormatHeading = (tag: 'h1' | 'h2' | 'h3' | 'h4' | 'p') => {
-    focusEditor()
-    const selection = window.getSelection()
-
-    if (
-      !selection
-      || selection.rangeCount === 0
-      || selection.toString().trim().length === 0
-    ) {
-      setMessage(`Please select text before applying ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting`)
-      return
-    }
-
-    // Serialize ONLY the selected content (keeping inline formatting such as
-    // bold/links) and wrap it in a real block element. insertHTML replaces just
-    // the selection and splits the surrounding block, so the heading applies to
-    // the selected text only — not the entire post. Real heading tags also
-    // survive storage and render as headings on the post page.
-    const range = selection.getRangeAt(0)
-    const container = document.createElement('div')
-    container.appendChild(range.cloneContents())
-    const selectedHtml = container.innerHTML
-
-    document.execCommand('insertHTML', false, `<${tag}>${selectedHtml}</${tag}>`)
-
-    syncContentFromEditor()
-    contentInputRef.current?.focus()
-    setMessage(`Applied ${tag === 'p' ? 'Paragraph' : tag.toUpperCase()} formatting to the selected text`)
   }
 
   const insertInlineDownloadLink = () => {
@@ -631,180 +368,13 @@ function Dashboard() {
 
     const linkHtml = `<p><a href="${safeHref}" download="${encodedFileName}" target="_blank" rel="noreferrer">${encodedTitle} ↓</a></p>`
 
-    focusEditor()
-    document.execCommand('insertHTML', false, linkHtml)
-    syncContentFromEditor()
+    // Insert at the cursor through the editor; onUpdate syncs it into state.
+    editorRef.current?.insertHTML(linkHtml)
 
     setInlineFileName('')
     setInlineFileData('')
     setInlineFileTitle('')
     setMessage('Download link inserted into post content.')
-  }
-
-  const handleFormatContent = (
-    action: 'bold' | 'italic' | 'heading' | 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'quote' | 'bullet' | 'number' | 'link' | 'color' | 'font' | 'fontSize'
-  ) => {
-    if (action === 'bold') {
-      runCommand('bold')
-      return
-    }
-
-    if (action === 'italic') {
-      runCommand('italic')
-      return
-    }
-
-    if (action === 'h1') {
-      handleFormatHeading('h1')
-      return
-    }
-
-    if (action === 'h2') {
-      handleFormatHeading('h2')
-      return
-    }
-
-    if (action === 'h3') {
-      handleFormatHeading('h3')
-      return
-    }
-
-    if (action === 'h4') {
-      handleFormatHeading('h4')
-      return
-    }
-
-    if (action === 'p') {
-      handleFormatHeading('p')
-      return
-    }
-
-    if (action === 'heading') {
-      handleFormatHeading('h2')
-      return
-    }
-
-    if (action === 'quote') {
-      runCommand('formatBlock', 'blockquote')
-      return
-    }
-
-    if (action === 'bullet') {
-      runCommand('insertUnorderedList')
-      return
-    }
-
-    if (action === 'number') {
-      runCommand('insertOrderedList')
-      return
-    }
-
-    if (action === 'color') {
-      setShowColorPicker(true)
-      return
-    }
-
-    if (action === 'font') {
-      setShowFontPicker(true)
-      return
-    }
-
-    if (action === 'fontSize') {
-      const size = window.prompt('Enter font size (1-7, where 1=8px, 3=16px, 5=32px)', '3')
-      if (!size) {
-        return
-      }
-      runCommand('fontSize', size)
-      return
-    }
-
-    if (action === 'link') {
-      const link = window.prompt('Enter URL', 'https://')
-      if (!link) {
-        return
-      }
-      runCommand('createLink', link)
-    }
-  }
-
-  const handleApplyFont = (fontFamily: string) => {
-    runCommand('fontName', fontFamily)
-    setShowFontPicker(false)
-    contentInputRef.current?.focus()
-  }
-
-  const handleApplyColor = (color: string) => {
-    runCommand('foreColor', color)
-    setSelectedColor(color)
-    setShowColorPicker(false)
-    contentInputRef.current?.focus()
-  }
-
-  const handleColorGradientClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-
-    const saturation = (x / rect.width) * 100
-    const brightness = 100 - (y / rect.height) * 100
-
-    setColorSaturation(saturation)
-    setColorBrightness(brightness)
-
-    const rgb = hslToRgb(colorHue, saturation, brightness)
-    const hex = rgbToHex(rgb.r, rgb.g, rgb.b)
-    setSelectedColor(hex)
-  }
-
-  const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const hue = parseFloat(e.target.value)
-    setColorHue(hue)
-
-    const rgb = hslToRgb(hue, colorSaturation, colorBrightness)
-    const hex = rgbToHex(rgb.r, rgb.g, rgb.b)
-    setSelectedColor(hex)
-  }
-
-  const handleColorHexInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const hex = e.target.value
-    // Allow typing without immediate validation, just update display
-    setSelectedColor(hex)
-  }
-
-  const applyHexColor = (hexValue: string) => {
-    let cleanHex = hexValue.trim().toUpperCase()
-    
-    // Remove # if present
-    if (cleanHex.startsWith('#')) {
-      cleanHex = cleanHex.slice(1)
-    }
-    
-    // Convert 3-char hex to 6-char hex
-    if (cleanHex.length === 3) {
-      cleanHex = cleanHex
-        .split('')
-        .map((char) => char + char)
-        .join('')
-    }
-    
-    // Validate hex format
-    if (!/^[0-9A-F]{6}$/.test(cleanHex)) {
-      setMessage('Invalid hex code. Please use format: #RRGGBB or RRGGBB')
-      return
-    }
-    
-    const fullHex = '#' + cleanHex
-    setSelectedColor(fullHex)
-    
-    const rgb = hexToRgb(fullHex)
-    if (rgb) {
-      const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
-      setColorHue(hsl.h)
-      setColorSaturation(hsl.s)
-      setColorBrightness(hsl.l)
-    }
-    
-    setMessage(`Color updated: ${fullHex}`)
   }
 
   const waitForPendingImageUpload = async () => {
@@ -1091,13 +661,8 @@ function Dashboard() {
                           type="button"
                           className={styles.insertTitleBtn}
                           onClick={() => {
-                            if (form.title && contentInputRef.current) {
-                              const div = document.createElement('div')
-                              const h1 = document.createElement('h1')
-                              h1.textContent = form.title
-                              div.appendChild(h1)
-                              contentInputRef.current.innerHTML += div.innerHTML
-                              syncContentFromEditor()
+                            if (form.title) {
+                              editorRef.current?.insertHTML(`<h1>${escapeHtml(form.title)}</h1>`)
                               setMessage('Title inserted as H1 in content.')
                             }
                           }}
@@ -1135,244 +700,14 @@ function Dashboard() {
 
                   <label>
                     Full Post Content
-                    <div className={styles.editorTools}>
-                      <div className={styles.toolGroup}>
-                        <select className={styles.toolSelect} onChange={(e) => handleFormatContent(e.target.value as any)} defaultValue="p" title="Heading Style">
-                          <option value="p">Paragraph</option>
-                          <option value="h1">H1 - Title</option>
-                          <option value="h2">H2 - Heading</option>
-                          <option value="h3">H3 - Subheading</option>
-                          <option value="h4">H4 - Minor Heading</option>
-                        </select>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bold')} title="Bold" aria-label="Bold">
-                          <strong>B</strong>
-                        </button>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('italic')} title="Italic" aria-label="Italic">
-                          <em>I</em>
-                        </button>
-                      </div>
-
-                      <div className={styles.toolDivider}></div>
-
-                      <div className={styles.toolGroup} style={{ position: 'relative' }}>
-                        <div style={{ position: 'relative' }}>
-                          <button type="button" className={styles.toolBtn} onClick={() => setShowColorPicker(!showColorPicker)} title="Text Color" aria-label="Text Color">
-                            <span
-                              className={styles.colorIndicator}
-                              style={{ backgroundColor: selectedColor }}
-                            ></span>
-                            🎨 Color
-                          </button>
-                          {showColorPicker && (
-                            <div className={styles.modernColorPickerContainer}>
-                              <div className={styles.modernColorPicker}>
-                                {/* Gradient Selector */}
-                                <div
-                                  className={styles.colorGradient}
-                                  style={{
-                                    background: `linear-gradient(to right, rgb(255, 255, 255), hsl(${colorHue}, 100%, 50%))`,
-                                  }}
-                                  onClick={handleColorGradientClick}
-                                >
-                                  <div
-                                    className={styles.colorSelector}
-                                    style={{
-                                      left: `${colorSaturation}%`,
-                                      top: `${100 - colorBrightness}%`,
-                                    }}
-                                  />
-                                </div>
-
-                                {/* Hue Slider */}
-                                <div className={styles.colorSliderContainer}>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="360"
-                                    value={colorHue}
-                                    onChange={handleHueChange}
-                                    className={styles.hueSlider}
-                                  />
-                                </div>
-
-                                {/* Controls Section */}
-                                <div className={styles.colorControls}>
-                                  <div className={styles.colorInputRow}>
-                                    <label>
-                                      Hex Code
-                                      <div className={styles.hexInputWrapper}>
-                                        <input
-                                          type="text"
-                                          value={selectedColor}
-                                          onChange={handleColorHexInput}
-                                          placeholder="#000000 or 000000"
-                                          className={styles.hexInput}
-                                          maxLength={7}
-                                        />
-                                        <button
-                                          type="button"
-                                          className={styles.applyHexBtn}
-                                          onClick={() => applyHexColor(selectedColor)}
-                                          title="Apply hex color"
-                                        >
-                                          ✓
-                                        </button>
-                                      </div>
-                                    </label>
-                                  </div>
-
-                                  <div className={styles.colorPresetSection}>
-                                    <p className={styles.presetLabel}>Quick Colors</p>
-                                    <div className={styles.colorPresetGrid}>
-                                      {['#000000', '#FFFFFF', '#39ff14', '#FF0000', '#0000FF', '#FFFF00', '#FFA500', '#800080'].map(
-                                        (color) => (
-                                          <button
-                                            key={color}
-                                            type="button"
-                                            className={styles.presetColor}
-                                            style={{ backgroundColor: color }}
-                                            onClick={() => {
-                                              const rgb = hexToRgb(color)
-                                              if (rgb) {
-                                                const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
-                                                setColorHue(hsl.h)
-                                                setColorSaturation(hsl.s)
-                                                setColorBrightness(hsl.l)
-                                              }
-                                              setSelectedColor(color)
-                                            }}
-                                            title={`Select ${color}`}
-                                          />
-                                        ),
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    className={styles.applyColorBtn}
-                                    onClick={() => handleApplyColor(selectedColor)}
-                                  >
-                                    Apply Color
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ position: 'relative' }}>
-                          <button type="button" className={styles.toolBtn} onClick={() => setShowFontPicker(!showFontPicker)} title="Font Family" aria-label="Font Family">
-                            ✎ Font
-                          </button>
-                          {showFontPicker && (
-                            <div className={styles.pickerDropdown} style={{ top: '100%', left: 0, marginTop: '0.4rem', zIndex: 1000 }}>
-                              <div className={styles.fontPickerDropdown}>
-                                <div className={styles.fontCategory}>
-                                  <p className={styles.fontCategoryLabel}>Sans-Serif</p>
-                                  {['Arial', 'Helvetica', 'Trebuchet MS', 'Verdana', 'Calibri', 'Segoe UI', 'Roboto', 'Source Sans Pro', 'Open Sans', 'Tahoma', 'Lucida Grande'].map((font) => (
-                                    <button
-                                      key={font}
-                                      type="button"
-                                      className={styles.fontOptionDropdown}
-                                      style={{ fontFamily: font }}
-                                      onClick={() => handleApplyFont(font)}
-                                      title={`Select ${font}`}
-                                    >
-                                      {font}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className={styles.fontCategory}>
-                                  <p className={styles.fontCategoryLabel}>Serif</p>
-                                  {['Georgia', 'Times New Roman', 'Garamond', 'Cambria', 'Droid Serif', 'Palatino', 'Book Antiqua', 'Courier'].map((font) => (
-                                    <button
-                                      key={font}
-                                      type="button"
-                                      className={styles.fontOptionDropdown}
-                                      style={{ fontFamily: font }}
-                                      onClick={() => handleApplyFont(font)}
-                                      title={`Select ${font}`}
-                                    >
-                                      {font}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className={styles.fontCategory}>
-                                  <p className={styles.fontCategoryLabel}>Monospace</p>
-                                  {['Courier New', 'Monaco', 'Consolas', 'Ubuntu Mono', 'Menlo', 'Inconsolata'].map((font) => (
-                                    <button
-                                      key={font}
-                                      type="button"
-                                      className={styles.fontOptionDropdown}
-                                      style={{ fontFamily: font }}
-                                      onClick={() => handleApplyFont(font)}
-                                      title={`Select ${font}`}
-                                    >
-                                      {font}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className={styles.fontCategory}>
-                                  <p className={styles.fontCategoryLabel}>Script & Display</p>
-                                  {['Comic Sans MS', 'Brush Script MT', 'Cursive', 'Lucida Calligraphy', 'Lucida Handwriting', 'Edwardian Script ITC'].map((font) => (
-                                    <button
-                                      key={font}
-                                      type="button"
-                                      className={styles.fontOptionDropdown}
-                                      style={{ fontFamily: font }}
-                                      onClick={() => handleApplyFont(font)}
-                                      title={`Select ${font}`}
-                                    >
-                                      {font}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('fontSize')} title="Font Size" aria-label="Font Size">
-                          A+ Size
-                        </button>
-                      </div>
-
-                      <div className={styles.toolDivider}></div>
-
-                      <div className={styles.toolGroup}>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('bullet')} title="Bullet list" aria-label="Bullet list">
-                          • List
-                        </button>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('number')} title="Numbered list" aria-label="Numbered list">
-                          1. List
-                        </button>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('quote')} title="Quote" aria-label="Quote">
-                          " "
-                        </button>
-                        <button type="button" className={styles.toolBtn} onClick={() => handleFormatContent('link')} title="Link" aria-label="Link">
-                          Link
-                        </button>
-                      </div>
-                    </div>
-
-                    <textarea
-                      style={{ display: 'none' }}
+                    <RichTextEditor
+                      ref={editorRef}
                       value={form.content}
-                      readOnly
+                      onChange={handleContentChange}
+                      ariaLabel="Full Post Content Editor"
                     />
-                    <div
-                      ref={contentInputRef}
-                      className={styles.richEditor}
-                      contentEditable
-                      role="textbox"
-                      aria-label="Full Post Content Editor"
-                      onInput={syncContentFromEditor}
-                      onPaste={handleEditorPaste}
-                      onBlur={smartFormatEditorIfNeeded}
-                      onClick={() => contentInputRef.current?.focus()}
-                      suppressContentEditableWarning
-                    ></div>
                     <span className={styles.editorHint}>
-                      Tip: Paste text to auto-format title, paragraphs, lists, and links.
+                      Tip: Paste rich text to keep its formatting; use the toolbar for headings, lists, links, color and fonts.
                     </span>
                     <div className={styles.inlineFileTools}>
                       <h3>Insert Download File In Content</h3>
